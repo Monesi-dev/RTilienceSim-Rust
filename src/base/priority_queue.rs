@@ -9,11 +9,13 @@ use std::fmt::Debug;
 // reinserted, but this is a design choice to avoid future problems.
 // @NB: id was added because when I had to delete a random event I did not know how to 
 // do it without using the pointer (which is unsafe rust)
-pub trait Event {
+pub trait Event: Debug {
     fn get_time(&self) -> SimTime;
     fn set_time(&mut self, time: SimTime);
     fn get_id(&self) -> u64;
+    fn set_id(&mut self, id: u64);
     fn doit(&mut self) -> Vec<Box<dyn Event>>;
+    fn clone_box(&self) -> Box<dyn Event>;
 }
 
 // Priority queue using BTreeMap: we can access a key in logN, we can access the first 
@@ -113,7 +115,7 @@ impl PriorityQueue {
 
     // Remove a specific event from the queue, I use time to get the bucket and then
     // I look at the ID
-    pub fn remove(&mut self, event: &dyn Event) -> bool {
+    pub fn remove(&mut self, event: Box<dyn Event>) -> bool {
 
         // Get time and id
         let time = event.get_time();
@@ -176,8 +178,16 @@ mod tests {
             self.event_id
         }
 
+        fn set_id(&mut self, id: u64) {
+            self.event_id = id;
+        }
+
         fn doit(&mut self) -> Vec<Box<dyn Event>> {
             vec![]
+        }
+
+        fn clone_box(&self) -> Box<dyn Event> {
+            Box::new(self.clone())
         }
     }
 
@@ -194,7 +204,7 @@ mod tests {
         assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(5));
         assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(10));
         assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(15));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(None));
+        assert_eq!(queue.pop_first().map(|e| e.get_time()), None);
     }
 
     #[test]
@@ -219,14 +229,14 @@ mod tests {
         let mut queue: PriorityQueue = PriorityQueue::new();
         assert!(queue.is_empty());
         assert_eq!(queue.len(), 0);
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(None));
+        assert_eq!(queue.pop_first().map(|e| e.get_time()), None);
     }
 
     #[test]
     fn test_negative_time_rejected() {
         let mut queue = PriorityQueue::new();
-        let mut event = TestEvent::new(-1);
-        assert_eq!(queue.insert(Box::new(event)), Err(()));
+        let event = TestEvent::new(-1);
+        assert_eq!(queue.insert(Box::new(event)), Err("Event time cannot be negative".to_string()));
     }
 
     #[test]
@@ -261,18 +271,121 @@ mod tests {
         assert_eq!(queue.len(), 3);
 
         // Create search key with same time and ID
-        let mut search = TestEvent::new(99);
+        let mut search = Box::new(TestEvent::new(99));
         search.time = 10;
         search.event_id = event1_id;
 
         // Remove event1
-        let removed = queue.remove(&search);
+        let removed = queue.remove(search);
         assert!(removed);
         assert_eq!(queue.len(), 2);
 
         // Verify queue structure
-        assert_eq!(queue.pop_first(), Some(10));
-        assert_eq!(queue.pop_first(), Some(20));
-        assert_eq!(queue.pop_first(), None);
+        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(10));
+        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(20));
+        assert_eq!(queue.pop_first().map(|e| e.get_time()), None);
+    }
+}
+
+// Integration tests with sporadic and periodic events
+#[cfg(test)]
+mod integration_tests {
+    use super::*;
+    use crate::base::sporadic_event::SporadicEvent;
+    use crate::base::periodic_event::PeriodicEvent;
+    use crate::base::random_variable::{Uniform, Normal, Exponential, Poisson};
+
+    #[test]
+    fn test_event_list_with_distributions_and_deletion() {
+
+        // Test priority queue creating 5 events (Uniform, Normal, Exponential, Poisson
+        // and Periodic). Then extract and re-insert 50 times. Then delete last element
+        // popped (which will be in a random position). Then extract and re-insert 50 times
+        const SEED: u64 = 12345;
+        const EXTRACT_REINSERT_ROUNDS: usize = 50;
+
+        let extracted_times = run_event_list_scenario(SEED, EXTRACT_REINSERT_ROUNDS);
+        let expected_length = EXTRACT_REINSERT_ROUNDS + 1 + EXTRACT_REINSERT_ROUNDS;
+        assert_eq!(extracted_times.len(), expected_length);
+
+        // Verify events were extracted in non-decreasing time order (priority queue property)
+        assert!(is_monotonically_increasing(&extracted_times));
+
+        // Verify that simulations is reproducible
+        let extracted_times_rep = run_event_list_scenario(SEED, EXTRACT_REINSERT_ROUNDS);
+        assert_eq!(extracted_times, extracted_times_rep);
+    }
+
+    fn run_event_list_scenario(seed: u64, extract_reinsert_rounds: usize) -> Vec<SimTime> {
+        
+
+        let mut queue = PriorityQueue::new();
+        let mut extracted_times: Vec<SimTime> = Vec::new();
+
+        // Create Events
+        let sporadic_uniform = SporadicEvent::new(
+            0, Box::new(Uniform::new(1, 10, seed))
+        );
+        let sporadic_normal = SporadicEvent::new(
+            5, Box::new(Normal::new(10, 2, seed))
+        );
+        let sporadic_exponential = SporadicEvent::new(
+            10, Box::new(Exponential::new(0.1, 5.0, seed)),
+        );
+        let sporadic_poisson = SporadicEvent::new(
+            15, Box::new(Poisson::new(5.0, seed))
+        );
+        let periodic = PeriodicEvent::new(2, 20);
+
+        // Insert messages
+        queue.insert(Box::new(sporadic_uniform)).unwrap();
+        queue.insert(Box::new(sporadic_normal)).unwrap();
+        queue.insert(Box::new(sporadic_exponential)).unwrap();
+        queue.insert(Box::new(sporadic_poisson)).unwrap();
+        queue.insert(Box::new(periodic)).unwrap();
+
+
+        // Extract and re-insert 50 times
+        for _ in 0..extract_reinsert_rounds {
+            let mut event = queue.pop_first().unwrap();
+            extracted_times.push(event.get_time());
+
+            let new_events = event.doit();
+            for new_event in new_events {
+                queue.insert(new_event).unwrap();
+            }
+        }
+
+        // Extract Event, insert new event, update time of Event to new Event (so they
+        // will have same time and id) and use it to delete newly inserted event
+        let mut event = queue.pop_first().unwrap();
+        extracted_times.push(event.get_time());
+
+        let new_events = event.doit();
+        event.set_time(new_events[0].get_time());
+        for new_event in new_events {
+            queue.insert(new_event).unwrap();
+        }
+
+        assert_eq!(queue.remove(event), false);
+        assert_eq!(queue.len(), 5);
+
+        // Extract and re-insert 50 more times
+        for _ in 0..extract_reinsert_rounds {
+            let mut event = queue.pop_first().unwrap();
+            extracted_times.push(event.get_time());
+
+            let new_events = event.doit();
+            for new_event in new_events {
+                queue.insert(new_event).unwrap();
+            }
+        }
+
+        extracted_times
+    }
+
+    // Verifies that vector of times is not-decreasing
+    fn is_monotonically_increasing(times: &[SimTime]) -> bool {
+        times.windows(2).all(|w| w[0] <= w[1])
     }
 }
