@@ -32,7 +32,10 @@ fn run_insert_extraction_workload(
         );
         queue.insert(Box::new(event)).unwrap();
         let mut event = queue.pop_first().unwrap();
-        let new_events = event.doit();
+        let (should_delete, new_events) = event.doit();
+        if !should_delete {
+            queue.insert(event).unwrap();
+        }
         for new_event in new_events {
             queue.insert(new_event).unwrap();
         }
@@ -44,7 +47,10 @@ fn run_insert_extraction_workload(
 
         for _ in 0..batch_size {
             let mut event = queue.pop_first().unwrap();
-            let new_events = event.doit();
+            let (should_delete, new_events) = event.doit();
+            if !should_delete {
+                queue.insert(event).unwrap();
+            }
             for new_event in new_events {
                 queue.insert(new_event).unwrap();
             }
@@ -116,24 +122,24 @@ fn main() {
 
     // Queue sizes to test
     let queue_sizes = vec![
-        1_000,
-        2_500,
-        5_000,
-        7_500,
-        10_000,
-        25_000,
-        50_000,
-        75_000,
-        100_000,
-        250_000,
-        500_000,
-        750_000,
-        1_000_000,
-        2_500_000,
-        5_000_000,
-        7_500_000,
-        10_000_000,
-        25_000_000,
+        // 1_000,
+        // 2_500,
+        // 5_000,
+        // 7_500,
+        // 10_000,
+        // 25_000,
+        // 50_000,
+        // 75_000,
+        // 100_000,
+        // 250_000,
+        // 500_000,
+        // 750_000,
+        // 1_000_000,
+        // 2_500_000,
+        // 5_000_000,
+        // 7_500_000,
+        // 10_000_000,
+        // 25_000_000,
         50_000_000,
     ];
 

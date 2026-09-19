@@ -14,7 +14,7 @@ pub trait Event: Debug {
     fn set_time(&mut self, time: SimTime);
     fn get_id(&self) -> u64;
     fn set_id(&mut self, id: u64);
-    fn doit(&mut self) -> Vec<Box<dyn Event>>;
+    fn doit(&mut self) -> (bool, Vec<Box<dyn Event>>);
     fn clone_box(&self) -> Box<dyn Event>;
 }
 
@@ -182,8 +182,8 @@ mod tests {
             self.event_id = id;
         }
 
-        fn doit(&mut self) -> Vec<Box<dyn Event>> {
-            vec![]
+        fn doit(&mut self) -> (bool, Vec<Box<dyn Event>>) {
+            (true, vec![])
         }
 
         fn clone_box(&self) -> Box<dyn Event> {
@@ -350,32 +350,35 @@ mod integration_tests {
             let mut event = queue.pop_first().unwrap();
             extracted_times.push(event.get_time());
 
-            let new_events = event.doit();
+            let (should_delete, new_events) = event.doit();
+            if !should_delete {
+                queue.insert(event).unwrap();
+            }
             for new_event in new_events {
                 queue.insert(new_event).unwrap();
             }
         }
 
-        // Extract Event, insert new event, update time of Event to new Event (so they
-        // will have same time and id) and use it to delete newly inserted event
+        // Extract event, call doit, clone it, reinserert and remove using the clone
         let mut event = queue.pop_first().unwrap();
         extracted_times.push(event.get_time());
 
-        let new_events = event.doit();
-        event.set_time(new_events[0].get_time());
-        for new_event in new_events {
-            queue.insert(new_event).unwrap();
-        }
+        let (_should_delete, _follow_ups) = event.doit();
+        let event_clone = event.clone_box();
+        queue.insert(event).unwrap();
 
-        assert_eq!(queue.remove(event), false);
-        assert_eq!(queue.len(), 5);
+        assert_eq!(queue.remove(event_clone), true);
+        assert_eq!(queue.len(), 4);
 
         // Extract and re-insert 50 more times
         for _ in 0..extract_reinsert_rounds {
             let mut event = queue.pop_first().unwrap();
             extracted_times.push(event.get_time());
 
-            let new_events = event.doit();
+            let (should_delete, new_events) = event.doit();
+            if !should_delete {
+                queue.insert(event).unwrap();
+            }
             for new_event in new_events {
                 queue.insert(new_event).unwrap();
             }

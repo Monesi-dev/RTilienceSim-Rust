@@ -51,10 +51,15 @@ impl EventList {
             };
 
             // Event processing happens and the new events to insert are returned
-            let follow_ups = event.doit();
+            let (should_delete, follow_ups) = event.doit();
+
+            // Reinsert event if it should not be deleted
+            if !should_delete {
+                let _ = self.insert(event);
+            }
 
             // Insert new events
-            // @NB here we ignore Result<> with let _ = (otherwise it gives a warning) 
+            // @NB here we ignore Result<> with let _ = (otherwise it gives a warning)
             // but in the future it can be used to log
             for follow_up in follow_ups {
                 let _ = self.insert(follow_up);

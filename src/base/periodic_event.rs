@@ -34,9 +34,9 @@ impl Event for PeriodicEvent {
         self.id = id;
     }
 
-    fn doit(&mut self) -> Vec<Box<dyn Event>> {
-        // Create a new event with time incremented by the period
-        vec![Box::new(PeriodicEvent::new(self.time + self.period, self.period))]
+    fn doit(&mut self) -> (bool, Vec<Box<dyn Event>>) {
+        self.time += self.period;
+        (false, vec![])
     }
 
     fn clone_box(&self) -> Box<dyn Event> {
@@ -58,10 +58,11 @@ mod tests {
     #[test]
     fn test_periodic_event_reschedules() {
         let mut event = PeriodicEvent::new(10, 5);
-        let follow_ups = event.doit();
+        let (should_delete, follow_ups) = event.doit();
 
-        assert_eq!(follow_ups.len(), 1);
-        assert_eq!(follow_ups[0].get_time(), 15);
+        assert!(!should_delete);  // Should be reinserted
+        assert_eq!(event.get_time(), 15);  // Event time should be updated
+        assert!(follow_ups.is_empty());  // No additional follow-ups
     }
 
     #[test]
@@ -71,8 +72,9 @@ mod tests {
 
         times.push(event.get_time());
         for _ in 0..6 {
-            let follow_ups = event.doit();
-            event = follow_ups.into_iter().next().unwrap();
+            let (should_delete, follow_ups) = event.doit();
+            assert!(!should_delete);  // Should not be deleted
+            assert!(follow_ups.is_empty());  // No additional events
             times.push(event.get_time());
         }
 

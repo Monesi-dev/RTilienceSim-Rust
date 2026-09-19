@@ -33,8 +33,8 @@ impl Event for BasicEvent {
         self.id = id;
     }
 
-    fn doit(&mut self) -> Vec<Box<dyn Event>> {
-        vec![]  // No follow-ups, delete this event by default
+    fn doit(&mut self) -> (bool, Vec<Box<dyn Event>>) {
+        (true, vec![])  // Delete this event, no follow-ups
     }
 
     fn clone_box(&self) -> Box<dyn Event> {
@@ -64,7 +64,8 @@ mod tests {
     #[test]
     fn test_basic_event_doit() {
         let mut event = BasicEvent::new(100);
-        let follow_ups = event.doit();
-        assert!(follow_ups.is_empty());  // No follow-ups, delete by default
+        let (should_delete, follow_ups) = event.doit();
+        assert!(should_delete);  // Should be deleted
+        assert!(follow_ups.is_empty());  // No follow-ups
     }
 }

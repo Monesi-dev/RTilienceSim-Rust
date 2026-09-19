@@ -49,16 +49,10 @@ impl Event for SporadicEvent {
         self.id = id;
     }
 
-    fn doit(&mut self) -> Vec<Box<dyn Event>> {
-        // Sample delta time and reschedule with cloned random variable
-        // @NB: I clone the RV because I cannot pass ownership as self is a reference.
-        // If I wanted to move ownership I would need to make self a Box<Self> and then
-        // I would make result the same value
+    fn doit(&mut self) -> (bool, Vec<Box<dyn Event>>) {
         let delta = self.random_var.sample();
-        vec![Box::new(SporadicEvent::new(
-            self.time + delta,
-            self.random_var.clone_box(),
-        ))]
+        self.time += delta;
+        (false, vec![])
     }
 
     fn clone_box(&self) -> Box<dyn Event> {
@@ -100,10 +94,11 @@ mod tests {
     #[test]
     fn test_sporadic_event_reschedules() {
         let mut event = SporadicEvent::new(10, Box::new(FixedRandomVar::new(5)));
-        let follow_ups = event.doit();
+        let (should_delete, follow_ups) = event.doit();
 
-        assert_eq!(follow_ups.len(), 1);
-        assert_eq!(follow_ups[0].get_time(), 15);
+        assert!(!should_delete);  // Should be reinserted
+        assert_eq!(event.get_time(), 15);  // Event time should be updated
+        assert!(follow_ups.is_empty());  // No additional follow-ups
     }
 
     #[test]
@@ -114,8 +109,9 @@ mod tests {
 
         times.push(event.get_time());
         for _ in 0..5 {
-            let follow_ups = event.doit();
-            event = follow_ups.into_iter().next().unwrap();
+            let (should_delete, follow_ups) = event.doit();
+            assert!(!should_delete);  // Should not be deleted
+            assert!(follow_ups.is_empty());  // No additional events
             times.push(event.get_time());
         }
 
