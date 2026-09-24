@@ -1,0 +1,34 @@
+name: Rust CI
+
+# This tells GitHub to run the workflow whenever someone pushes code
+# or opens a pull request to the main branch.
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# A workflow is made of one or more jobs
+jobs:
+  test:
+    name: Run Unit Tests
+    # We choose the latest Ubuntu Linux environment for the runner
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Download your repository's code onto the runner
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Install the standard Rust toolchain
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # Step 3: Use Rust's built-in caching so you don't re-download 
+      # all crates.io dependencies from scratch every single time
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      # Step 4: Actually run the tests!
+      - name: Run cargo test
+        run: cargo test --verbose
