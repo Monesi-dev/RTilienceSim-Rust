@@ -1,7 +1,17 @@
-use crate::base::sim_time::SimTime;
-use crate::base::priority_queue::Event;
+
+use std::fmt::Debug;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
+pub type SimTime = i64;
+
+pub trait Event: Debug {
+    fn get_time(&self) -> SimTime;
+    fn set_time(&mut self, time: SimTime);
+    fn get_id(&self) -> u64;
+    fn set_id(&mut self, id: u64);
+    fn doit(&mut self) -> (bool, Vec<Box<dyn Event>>);
+    fn clone_box(&self) -> Box<dyn Event>;
+}
 
 type NodePtr = Rc<RefCell<Node>>;
 type WeakNodePtr = Weak<RefCell<Node>>;
@@ -213,148 +223,5 @@ impl PriorityQueueDLL {
         }
 
         self.total_count -= 1;
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::base::event::BasicEvent;
-
-    #[test]
-    fn test_insert_and_pop() {
-        let mut queue = PriorityQueueDLL::new();
-
-        queue.insert(Box::new(BasicEvent::new(10))).unwrap();
-        queue.insert(Box::new(BasicEvent::new(5))).unwrap();
-        queue.insert(Box::new(BasicEvent::new(15))).unwrap();
-
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(5));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(10));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(15));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), None);
-    }
-
-    #[test]
-    fn test_peek_first() {
-        let mut queue = PriorityQueueDLL::new();
-
-        queue.insert(Box::new(BasicEvent::new(20))).unwrap();
-        queue.insert(Box::new(BasicEvent::new(10))).unwrap();
-
-        assert_eq!(queue.peek_first(), Some(10));
-        assert_eq!(queue.len(), 2);
-
-        queue.pop_first();
-        assert_eq!(queue.peek_first(), Some(20));
-    }
-
-    #[test]
-    fn test_empty_queue() {
-        let mut queue: PriorityQueueDLL = PriorityQueueDLL::new();
-        assert!(queue.is_empty());
-        assert_eq!(queue.len(), 0);
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), None);
-    }
-
-    #[test]
-    fn test_negative_time_rejected() {
-        let mut queue = PriorityQueueDLL::new();
-        let event = BasicEvent::new(-1);
-        let result = queue.insert(Box::new(event));
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_multiple_events_same_time() {
-        let mut queue = PriorityQueueDLL::new();
-
-        queue.insert(Box::new(BasicEvent::new(10))).unwrap();
-        queue.insert(Box::new(BasicEvent::new(10))).unwrap();
-        queue.insert(Box::new(BasicEvent::new(10))).unwrap();
-        queue.insert(Box::new(BasicEvent::new(5))).unwrap();
-
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(5));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(10));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(10));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(10));
-        assert!(queue.pop_first().is_none());
-    }
-
-    #[test]
-    fn test_remove_event() {
-        let mut queue = PriorityQueueDLL::new();
-
-        let handle1 = queue.insert(Box::new(BasicEvent::new(10))).unwrap();
-        let handle2 = queue.insert(Box::new(BasicEvent::new(20))).unwrap();
-        let handle3 = queue.insert(Box::new(BasicEvent::new(30))).unwrap();
-        let _handle4 = queue.insert(Box::new(BasicEvent::new(25))).unwrap();
-        let _handle5 = queue.insert(Box::new(BasicEvent::new(15))).unwrap();
-
-        assert_eq!(queue.len(), 5);
-        queue.remove(handle2);
-        assert_eq!(queue.len(), 4);
-        queue.remove(handle1);
-        assert_eq!(queue.len(), 3);
-        queue.remove(handle3);
-        assert_eq!(queue.len(), 2);
-
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(15));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(25));
-        assert!(queue.pop_first().is_none());
-    }
-
-    #[test]
-    fn test_remove_head() {
-        let mut queue = PriorityQueueDLL::new();
-
-        let handle_first = queue.insert(Box::new(BasicEvent::new(5))).unwrap();
-        let _handle_second = queue.insert(Box::new(BasicEvent::new(10))).unwrap();
-
-        assert_eq!(queue.peek_first(), Some(5));
-        queue.remove(handle_first);
-        assert_eq!(queue.peek_first(), Some(10));
-    }
-
-    #[test]
-    fn test_remove_tail() {
-        let mut queue = PriorityQueueDLL::new();
-
-        let _handle_first = queue.insert(Box::new(BasicEvent::new(5))).unwrap();
-        let handle_last = queue.insert(Box::new(BasicEvent::new(20))).unwrap();
-
-        assert_eq!(queue.len(), 2);
-        queue.remove(handle_last);
-        assert_eq!(queue.len(), 1);
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(5));
-    }
-
-    #[test]
-    fn test_clear() {
-        let mut queue = PriorityQueueDLL::new();
-
-        queue.insert(Box::new(BasicEvent::new(10))).unwrap();
-        queue.insert(Box::new(BasicEvent::new(20))).unwrap();
-
-        assert_eq!(queue.len(), 2);
-        queue.clear();
-        assert_eq!(queue.len(), 0);
-        assert!(queue.is_empty());
-    }
-
-    #[test]
-    fn test_insertion_order_preserved() {
-        let mut queue = PriorityQueueDLL::new();
-
-        let _h1 = queue.insert(Box::new(BasicEvent::new(30))).unwrap();
-        let _h2 = queue.insert(Box::new(BasicEvent::new(10))).unwrap();
-        let _h3 = queue.insert(Box::new(BasicEvent::new(20))).unwrap();
-        let _h4 = queue.insert(Box::new(BasicEvent::new(15))).unwrap();
-
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(10));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(15));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(20));
-        assert_eq!(queue.pop_first().map(|e| e.get_time()), Some(30));
     }
 }

@@ -10,3 +10,51 @@ rand_distr = "0.4"
 [[bench]]
 name = "priority_queue_bench"
 harness = false
+
+[[bench]]
+name = "dll_bench"
+harness = false
+
+[[bench]]
+name = "arena_dll_bench"
+harness = false
+
+[[bench]]
+name = "binary_heap_bench"
+harness = false
+
+[[bin]]
+name = "dll_priority_queue_ie_profiling"
+path = "benches/profile_insert_extraction.rs"
+harness = false
+
+[[bin]]
+name = "dll_priority_queue_r_profiling"
+path = "benches/profile_removal.rs"
+harness = false
+
+[[bin]]
+name = "btree_priority_queue_ie_profiling"
+path = "benches/profile_insert_extraction_btree.rs"
+harness = false
+
+[[bin]]
+name = "btree_priority_queue_r_profiling"
+path = "benches/profile_removal_btree.rs"
+harness = false
+
+[[bin]]
+name = "arena_dll_priority_queue_ie_profiling"
+path = "benches/profile_insert_extraction_arena_dll.rs"
+
+[[bin]]
+name = "arena_dll_priority_queue_r_profiling"
+path = "benches/profile_removal_arena_dll.rs"
+
+[[bin]]
+name = "binary_heap_priority_queue_ie_profiling"
+path = "benches/profile_insert_extraction_binary_heap.rs"
+
+[[bin]]
+name = "binary_heap_priority_queue_r_profiling"
+path = "benches/profile_removal_binary_heap.rs"

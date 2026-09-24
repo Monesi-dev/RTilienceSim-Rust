@@ -64,8 +64,8 @@ fn run_insert_extraction_workload(
     latencies
 }
 
-/// Run removal workload: pre-populate queue, then repeatedly insert a batch of events
-/// and benchmark their removal
+/// Run removal workload: pre-populate queue with uniform distribution, then
+/// repeatedly insert a batch of events and benchmark their removal
 fn run_removal_workload(
     num_messages: u64,
     num_operations: u64,
@@ -76,32 +76,55 @@ fn run_removal_workload(
     let mut queue = PriorityQueue::new();
     let mut latencies: Vec<u128> = Vec::with_capacity((num_operations / batch_size) as usize);
 
-    // Pre-populate queue with (num_messages - batch_size) events
+    // Pre-populate queue with (num_messages - batch_size) events using uniform distribution
     for i in 0..(num_messages - batch_size) {
-        let event = Box::new(SporadicEvent::new(
-            i as SimTime,
+        let event = SporadicEvent::new(
+            0,
             Box::new(Uniform::new(min_dist, max_dist, i as u64)),
-        ));
-        queue.insert(event).unwrap();
+        );
+        queue.insert(Box::new(event)).unwrap();
+        let mut event = queue.pop_first().unwrap();
+        let (should_delete, new_events) = event.doit();
+        if !should_delete {
+            queue.insert(event).unwrap();
+        }
+        for new_event in new_events {
+            queue.insert(new_event).unwrap();
+        }
     }
 
     // Run insertion then removal cycles with batched timing
     for batch_num in 0..(num_operations / batch_size) {
-        // First, insert a batch of events and save them for removal
+        // First, insert a batch of events using uniform distribution
         let mut batch_events: Vec<Box<dyn Event>> = Vec::new();
         for i in 0..batch_size {
             let event_idx = num_messages - batch_size + batch_num * batch_size + i;
-            let event = Box::new(SporadicEvent::new(
-                event_idx as SimTime,
+            let event = SporadicEvent::new(
+                0,
                 Box::new(Uniform::new(min_dist, max_dist, event_idx as u64)),
-            ));
-            batch_events.push(event.clone());
-            queue.insert(event).unwrap();
+            );
+            let event_box = Box::new(event);
+            batch_events.push(event_box.clone());
+            queue.insert(event_box).unwrap();
         }
 
-        // Then benchmark removal of the batch
-        let batch_start = Instant::now();
+        // Extract, call doit, and reinsert to settle the batch
+        let mut settled_events: Vec<Box<dyn Event>> = Vec::new();
         for event in batch_events {
+            let mut popped_event = queue.pop_first().unwrap();
+            let (should_delete, new_events) = popped_event.doit();
+            if !should_delete {
+                queue.insert(popped_event).unwrap();
+                settled_events.push(event);
+            }
+            for new_event in new_events {
+                queue.insert(new_event).unwrap();
+            }
+        }
+
+        // Then benchmark removal of the settled batch
+        let batch_start = Instant::now();
+        for event in settled_events {
             queue.remove(event);
         }
         let batch_duration = batch_start.elapsed().as_micros();
@@ -122,25 +145,25 @@ fn main() {
 
     // Queue sizes to test
     let queue_sizes = vec![
-        // 1_000,
-        // 2_500,
-        // 5_000,
-        // 7_500,
-        // 10_000,
-        // 25_000,
-        // 50_000,
-        // 75_000,
-        // 100_000,
-        // 250_000,
-        // 500_000,
-        // 750_000,
-        // 1_000_000,
-        // 2_500_000,
-        // 5_000_000,
-        // 7_500_000,
-        // 10_000_000,
+        1_000,
+        2_500,
+        5_000,
+        7_500,
+        10_000,
+        25_000,
+        50_000,
+        75_000,
+        100_000,
+        250_000,
+        500_000,
+        750_000,
+        1_000_000,
+        2_500_000,
+        5_000_000,
+        7_500_000,
+        10_000_000,
         // 25_000_000,
-        50_000_000,
+        //50_000_000,
     ];
 
     for queue_size in queue_sizes {
