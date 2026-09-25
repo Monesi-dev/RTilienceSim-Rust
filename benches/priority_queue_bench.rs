@@ -114,8 +114,8 @@ fn run_removal_workload(
             let mut popped_event = queue.pop_first().unwrap();
             let (should_delete, new_events) = popped_event.doit();
             if !should_delete {
+                settled_events.push(popped_event.clone_box());
                 queue.insert(popped_event).unwrap();
-                settled_events.push(event);
             }
             for new_event in new_events {
                 queue.insert(new_event).unwrap();
