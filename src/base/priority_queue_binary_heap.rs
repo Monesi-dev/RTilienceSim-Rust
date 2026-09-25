@@ -55,15 +55,15 @@ impl PriorityQueueBinaryHeap {
 
     fn bubble_up(&mut self, mut idx: usize) {
         // If node's value is smaller than parent then heap condition is not met so we
-        // swap them (update hash map with new event_id -> heap_id mapping) and continue 
+        // swap them (update hash map with new event_id -> heap_id mapping) and continue
         // doing so until heap condition is respected
-        let parent_idx = Self::parent(idx);
+        let mut parent_idx = Self::parent(idx);
         while self.heap[idx].get_time() < self.heap[parent_idx].get_time() {
             self.heap.swap(idx, parent_idx);
             self.id_to_index.insert(self.heap[idx].get_id(), idx);
             self.id_to_index.insert(self.heap[parent_idx].get_id(), parent_idx);
             idx = parent_idx;
-            let parent_idx = Self::parent(idx);
+            parent_idx = Self::parent(idx);
         }
     }
 
