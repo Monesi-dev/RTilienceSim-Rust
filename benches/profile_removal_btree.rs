@@ -1,35 +1,36 @@
-use rtilience_sim_rust::base::prelude::*;
-use std::io::{self, Write};
+use rtilience_sim_rust::base::priority_queue::PriorityQueue;
+use rtilience_sim_rust::base::random_variable::{Uniform, RandomVariable};
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+struct EventData {
+    rng: Uniform,
+}
+
+fn next_event_id() -> u64 {
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    COUNTER.fetch_add(1, Ordering::SeqCst)
+}
 
 fn main() {
     let num_messages: u64 = 100_000;
     let num_operations: u64 = 10_000;
     let batch_size: u64 = 10_000;
 
-    println!("Profiling removal workload with BTreeMap (memory only)...");
+    println!("Profiling removal workload (BTree with simple nodes)...");
     println!("Messages: {}, Operations: {}, Batch size: {}", num_messages, num_operations, batch_size);
 
     let mut queue = PriorityQueue::new();
+    let mut event_data: HashMap<u64, EventData> = HashMap::new();
 
-    // Pre-populate queue with events using uniform distribution
+    // Pre-populate queue
     println!("Pre-populating queue with {} events...", num_messages - batch_size);
-    for i in 0..(num_messages - batch_size) {
-        if i % 10_000_000 == 0 && i > 0 {
-            println!("  {} events inserted", i);
-        }
-        let event = SporadicEvent::new(
-            0,
-            Box::new(Uniform::new(1, num_messages as i64, i as u64)),
-        );
-        queue.insert(Box::new(event)).unwrap();
-        let mut event = queue.pop_first().unwrap();
-        let (should_delete, new_events) = event.doit();
-        if !should_delete {
-            queue.insert(event).unwrap();
-        }
-        for new_event in new_events {
-            queue.insert(new_event).unwrap();
-        }
+    for _ in 0..(num_messages - batch_size) {
+        let event_id = next_event_id();
+        let mut rng = Uniform::new(1, num_messages as i64, event_id);
+        let time = rng.sample();
+        queue.insert(event_id, time).unwrap();
+        event_data.insert(event_id, EventData { rng });
     }
 
     println!("Pre-population complete. Queue size: {}", queue.len());
@@ -40,34 +41,19 @@ fn main() {
             println!("Batch {}/{}", batch_num, num_operations / batch_size);
         }
 
-        let mut batch_events: Vec<Box<dyn Event>> = Vec::new();
-        for i in 0..batch_size {
-            let event_idx = num_messages - batch_size + batch_num * batch_size + i;
-            let event = SporadicEvent::new(
-                0,
-                Box::new(Uniform::new(1, num_messages as i64, event_idx as u64)),
-            );
-            let event_box = Box::new(event);
-            batch_events.push(event_box.clone_box());
-            queue.insert(event_box).unwrap();
+        let mut batch_nodes: Vec<(u64, i64)> = Vec::new();
+        for _ in 0..batch_size {
+            let event_id = next_event_id();
+            let mut rng = Uniform::new(1, num_messages as i64, event_id);
+            let time = rng.sample();
+            queue.insert(event_id, time).unwrap();
+            event_data.insert(event_id, EventData { rng });
+            batch_nodes.push((event_id, time));
         }
 
-        // Extract, call doit, and reinsert to settle the batch
-        let mut settled_events: Vec<Box<dyn Event>> = Vec::new();
-        for event in batch_events {
-            let mut popped_event = queue.pop_first().unwrap();
-            let (should_delete, new_events) = popped_event.doit();
-            if !should_delete {
-                queue.insert(popped_event).unwrap();
-                settled_events.push(event);
-            }
-            for new_event in new_events {
-                queue.insert(new_event).unwrap();
-            }
-        }
-
-        for event in settled_events {
-            queue.remove(event);
+        // Remove the batch
+        for (id, time) in batch_nodes {
+            queue.remove(time, id);
         }
     }
 
