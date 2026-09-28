@@ -11,22 +11,23 @@ pub trait Event: Debug {
     fn clone_box(&self) -> Box<dyn Event>;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Node {
+#[derive(Debug)]
+pub struct Node<T: Debug + Copy> {
     pub event_id: u64,
     pub time: SimTime,
+    pub event_type: T,
 }
 
 // Priority queue using BTreeMap: O(log n) for access and removal.
-// Stores only time and event_id; actual event data is managed externally by the scheduler.
+// Stores nodes with time, event_id, and event_type; actual event data is managed externally by the scheduler.
 // Since multiple events can occur at the same time, we store a vector of nodes.
 #[derive(Debug)]
-pub struct PriorityQueue {
-    items: BTreeMap<SimTime, Vec<Node>>,
+pub struct PriorityQueue<T: Debug + Copy> {
+    items: BTreeMap<SimTime, Vec<Node<T>>>,
     total_count: usize,
 }
 
-impl PriorityQueue {
+impl<T: Debug + Copy> PriorityQueue<T> {
     pub fn new() -> Self {
         PriorityQueue {
             items: BTreeMap::new(),
@@ -34,13 +35,13 @@ impl PriorityQueue {
         }
     }
 
-    /// Insert a node (event_id + time) into the queue. O(log n)
-    pub fn insert(&mut self, event_id: u64, time: SimTime) -> Result<(), String> {
+    /// Insert a node (event_id + time + event_type) into the queue. O(log n)
+    pub fn insert(&mut self, event_id: u64, time: SimTime, event_type: T) -> Result<(), String> {
         if time < 0 {
             return Err("Event time cannot be negative".to_string());
         }
 
-        let node = Node { event_id, time };
+        let node = Node { event_id, time, event_type };
         let nodes = self.items.entry(time).or_insert_with(Vec::new);
         nodes.push(node);
         self.total_count += 1;
@@ -48,7 +49,7 @@ impl PriorityQueue {
     }
 
     /// Extract the first (minimum time) node. O(log n)
-    pub fn pop_first(&mut self) -> Option<Node> {
+    pub fn pop_first(&mut self) -> Option<Node<T>> {
         let first_key = self.items.keys().next().copied()?;
         let nodes = self.items.get_mut(&first_key)?;
 
@@ -110,6 +111,13 @@ mod tests {
     use super::*;
     use std::sync::atomic::{AtomicU64, Ordering};
 
+    #[derive(Debug, Clone, Copy)]
+    enum EventType {
+        Arrival,
+        Departure,
+        ServiceComplete,
+    }
+
     fn next_id() -> u64 {
         static COUNTER: AtomicU64 = AtomicU64::new(0);
         COUNTER.fetch_add(1, Ordering::SeqCst)
@@ -119,22 +127,22 @@ mod tests {
     fn test_insert_and_pop() {
         let mut queue = PriorityQueue::new();
 
-        queue.insert(next_id(), 10).unwrap();
-        queue.insert(next_id(), 5).unwrap();
-        queue.insert(next_id(), 15).unwrap();
+        queue.insert(next_id(), 10, EventType::Arrival).unwrap();
+        queue.insert(next_id(), 5, EventType::Departure).unwrap();
+        queue.insert(next_id(), 15, EventType::ServiceComplete).unwrap();
 
         assert_eq!(queue.pop_first().map(|n| n.time), Some(5));
         assert_eq!(queue.pop_first().map(|n| n.time), Some(10));
         assert_eq!(queue.pop_first().map(|n| n.time), Some(15));
-        assert_eq!(queue.pop_first(), None);
+        assert!(queue.is_empty());
     }
 
     #[test]
     fn test_peek_first() {
         let mut queue = PriorityQueue::new();
 
-        queue.insert(next_id(), 20).unwrap();
-        queue.insert(next_id(), 10).unwrap();
+        queue.insert(next_id(), 20, EventType::Arrival).unwrap();
+        queue.insert(next_id(), 10, EventType::Departure).unwrap();
 
         assert_eq!(queue.peek_first(), Some(10));
         assert_eq!(queue.len(), 2);
@@ -145,17 +153,17 @@ mod tests {
 
     #[test]
     fn test_empty_queue() {
-        let mut queue = PriorityQueue::new();
+        let mut queue: PriorityQueue<EventType> = PriorityQueue::new();
         assert!(queue.is_empty());
         assert_eq!(queue.len(), 0);
-        assert_eq!(queue.pop_first(), None);
+        assert!(queue.pop_first().is_none());
     }
 
     #[test]
     fn test_negative_time_rejected() {
         let mut queue = PriorityQueue::new();
         assert_eq!(
-            queue.insert(next_id(), -1),
+            queue.insert(next_id(), -1, EventType::Arrival),
             Err("Event time cannot be negative".to_string())
         );
     }
@@ -164,16 +172,16 @@ mod tests {
     fn test_multiple_events_same_time() {
         let mut queue = PriorityQueue::new();
 
-        queue.insert(next_id(), 10).unwrap();
-        queue.insert(next_id(), 10).unwrap();
-        queue.insert(next_id(), 10).unwrap();
-        queue.insert(next_id(), 5).unwrap();
+        queue.insert(next_id(), 10, EventType::Arrival).unwrap();
+        queue.insert(next_id(), 10, EventType::Departure).unwrap();
+        queue.insert(next_id(), 10, EventType::ServiceComplete).unwrap();
+        queue.insert(next_id(), 5, EventType::Arrival).unwrap();
 
         assert_eq!(queue.pop_first().map(|n| n.time), Some(5));
         assert_eq!(queue.pop_first().map(|n| n.time), Some(10));
         assert_eq!(queue.pop_first().map(|n| n.time), Some(10));
         assert_eq!(queue.pop_first().map(|n| n.time), Some(10));
-        assert!(queue.pop_first().is_none());
+        assert!(queue.is_empty());
     }
 
     #[test]
@@ -184,9 +192,9 @@ mod tests {
         let id2 = next_id();
         let id3 = next_id();
 
-        queue.insert(id1, 10).unwrap();
-        queue.insert(id2, 10).unwrap();
-        queue.insert(id3, 20).unwrap();
+        queue.insert(id1, 10, EventType::Arrival).unwrap();
+        queue.insert(id2, 10, EventType::Departure).unwrap();
+        queue.insert(id3, 20, EventType::ServiceComplete).unwrap();
 
         assert_eq!(queue.len(), 3);
 
@@ -196,6 +204,6 @@ mod tests {
 
         assert_eq!(queue.pop_first().map(|n| n.time), Some(10));
         assert_eq!(queue.pop_first().map(|n| n.time), Some(20));
-        assert_eq!(queue.pop_first(), None);
+        assert!(queue.is_empty());
     }
 }

@@ -3,6 +3,13 @@ use rtilience_sim_rust::base::random_variable::{Uniform, RandomVariable};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 
+#[derive(Debug, Clone, Copy)]
+enum EventType {
+    Arrival,
+    Departure,
+    ServiceComplete,
+}
+
 struct EventData {
     rng: Uniform,
 }
@@ -20,7 +27,7 @@ fn main() {
     println!("Profiling insert-extraction workload (BTree with simple nodes)...");
     println!("Messages: {}, Operations: {}, Batch size: {}", num_messages, num_operations, batch_size);
 
-    let mut queue = PriorityQueue::new();
+    let mut queue: PriorityQueue<EventType> = PriorityQueue::new();
     let mut event_data: HashMap<u64, EventData> = HashMap::new();
 
     // Populate queue
@@ -28,7 +35,7 @@ fn main() {
         let event_id = i as u64;
         let mut rng = Uniform::new(1, num_messages as i64, event_id);
         let time = rng.sample();
-        queue.insert(event_id, time).unwrap();
+        queue.insert(event_id, time, EventType::Arrival).unwrap();
         event_data.insert(event_id, EventData { rng });
     }
 
@@ -43,7 +50,7 @@ fn main() {
             let node = queue.pop_first().unwrap();
             let delta = event_data.get_mut(&node.event_id).unwrap().rng.sample();
             let next_time = node.time + delta;
-            queue.insert(node.event_id, next_time).unwrap();
+            queue.insert(node.event_id, next_time, node.event_type).unwrap();
         }
     }
 

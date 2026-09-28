@@ -1,8 +1,15 @@
-use rtilience_sim_rust::base::priority_queue::PriorityQueue;
+use rtilience_sim_rust::base::priority_queue::{PriorityQueue, Node};
 use rtilience_sim_rust::base::random_variable::{Uniform, RandomVariable};
 use std::time::Instant;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
+
+#[derive(Debug, Clone, Copy)]
+enum EventType {
+    Arrival,
+    Departure,
+    ServiceComplete,
+}
 
 struct EventData {
     rng: Uniform,
@@ -24,41 +31,99 @@ fn variance(latencies: &[u128]) -> (f64, f64) {
 
 
 
-/// Run insert-extraction workload: populate queue with events,
-/// then repeatedly extract and re-insert
-fn run_insert_extraction_workload(
+/// Run insertion workload: populate queue, then benchmark insertion and removal of batches
+fn run_insertion_workload(
+    num_messages: u64,
+    num_operations: u64,
+    batch_size: u64,
+    min_dist: i64,
+    max_dist: i64,
+) -> Vec<u128> {
+    let mut queue: PriorityQueue<EventType> = PriorityQueue::new();
+    let mut event_data: HashMap<u64, EventData> = HashMap::new();
+    let mut latencies: Vec<u128> = Vec::with_capacity((num_operations / batch_size) as usize);
+
+    // Pre-populate queue with (num_messages - batch_size) events
+    for _ in 0..(num_messages - batch_size) {
+        let event_id = next_event_id();
+        let mut rng = Uniform::new(min_dist, max_dist, event_id);
+        let time = rng.sample();
+        queue.insert(event_id, time, EventType::Arrival).unwrap();
+        event_data.insert(event_id, EventData { rng });
+    }
+
+    // Run insertion cycles with batched timing
+    for _batch_num in 0..(num_operations / batch_size) {
+        let mut batch_nodes: Vec<(u64, i64, EventType)> = Vec::new();
+
+        // Prepare a batch of nodes to insert
+        for _ in 0..batch_size {
+            let event_id = next_event_id();
+            let mut rng = Uniform::new(min_dist, max_dist, event_id);
+            let time = rng.sample();
+            event_data.insert(event_id, EventData { rng });
+            batch_nodes.push((event_id, time, EventType::Arrival));
+        }
+
+        // Benchmark insertion of the batch
+        let batch_start = Instant::now();
+        for (id, time, event_type) in &batch_nodes {
+            queue.insert(*id, *time, *event_type).unwrap();
+        }
+        let batch_duration = batch_start.elapsed().as_micros();
+        latencies.push(batch_duration);
+
+        // Now remove batch
+        for (id, time, event_type) in &batch_nodes {
+            queue.remove(*time, *id);
+        }
+
+    }
+
+    latencies
+}
+
+/// Run extraction workload: populate queue, then benchmark extraction and re-insertion
+fn run_extraction_workload(
     num_messages: u64,
     num_operations: u64,
     batch_size: u64,
     min_time: i64,
     max_time: i64,
 ) -> Vec<u128> {
-    let mut queue = PriorityQueue::new();
+    let mut queue: PriorityQueue<EventType> = PriorityQueue::new();
     let mut event_data: HashMap<u64, EventData> = HashMap::new();
     let mut latencies: Vec<u128> = Vec::with_capacity((num_operations / batch_size) as usize);
 
     // Populate queue with events using uniform distribution
     for i in 0..num_messages {
-        let event_id = i as u64;
+        let event_id = next_event_id();
         let mut rng = Uniform::new(min_time, max_time, event_id);
         let time = rng.sample();
-        queue.insert(event_id, time).unwrap();
+        queue.insert(event_id, time, EventType::Arrival).unwrap();
         event_data.insert(event_id, EventData { rng });
     }
 
-    // Run insert-extraction cycles with batched timing
+    // Run extraction cycles with batched timing
     for _batch_num in 0..(num_operations / batch_size) {
         let batch_start = Instant::now();
 
+        let mut extracted: Vec<Node<EventType>> = Vec::new();
         for _ in 0..batch_size {
             let node = queue.pop_first().unwrap();
-            let delta = event_data.get_mut(&node.event_id).unwrap().rng.sample();
-            let next_time = node.time + delta;
-            queue.insert(node.event_id, next_time).unwrap();
         }
-
         let batch_duration = batch_start.elapsed().as_micros();
         latencies.push(batch_duration);
+
+        // Re-insert extracted elements
+        for _ in 0..batch_size {
+            let event_id = next_event_id();
+            let mut rng = Uniform::new(min_time, max_time, event_id);
+            let time = rng.sample();
+            queue.insert(event_id, time, EventType::Arrival).unwrap();
+            event_data.insert(event_id, EventData { rng });
+        }
+
     }
 
     latencies
@@ -73,7 +138,7 @@ fn run_removal_workload(
     min_dist: i64,
     max_dist: i64,
 ) -> Vec<u128> {
-    let mut queue = PriorityQueue::new();
+    let mut queue: PriorityQueue<EventType> = PriorityQueue::new();
     let mut event_data: HashMap<u64, EventData> = HashMap::new();
     let mut latencies: Vec<u128> = Vec::with_capacity((num_operations / batch_size) as usize);
 
@@ -82,7 +147,7 @@ fn run_removal_workload(
         let event_id = next_event_id();
         let mut rng = Uniform::new(min_dist, max_dist, event_id);
         let time = rng.sample();
-        queue.insert(event_id, time).unwrap();
+        queue.insert(event_id, time, EventType::Arrival).unwrap();
         event_data.insert(event_id, EventData { rng });
     }
 
@@ -95,30 +160,12 @@ fn run_removal_workload(
             let event_id = next_event_id();
             let mut rng = Uniform::new(min_dist, max_dist, event_id);
             let time = rng.sample();
-            queue.insert(event_id, time).unwrap();
+            queue.insert(event_id, time, EventType::Arrival).unwrap();
             event_data.insert(event_id, EventData { rng });
             batch_nodes.push((event_id, time));
         }
 
-<<<<<<< Updated upstream
-        // Extract, call doit, and reinsert to settle the batch
-        let mut settled_events: Vec<Box<dyn Event>> = Vec::new();
-        for event in batch_events {
-            let mut popped_event = queue.pop_first().unwrap();
-            let (should_delete, new_events) = popped_event.doit();
-            if !should_delete {
-                settled_events.push(popped_event.clone_box());
-                queue.insert(popped_event).unwrap();
-            }
-            for new_event in new_events {
-                queue.insert(new_event).unwrap();
-            }
-        }
-
-        // Then benchmark removal of the settled batch
-=======
         // Benchmark removal of the batch
->>>>>>> Stashed changes
         let batch_start = Instant::now();
         for (id, time) in batch_nodes {
             queue.remove(time, id);
@@ -135,7 +182,7 @@ fn main() {
     use std::io::Write;
 
     println!("Priority Queue Benchmark");
-    let operations: u64 = 5_000_000;
+    let operations: u64 = 1_000_000;
     let min: i64 = 1;
     let results_file = "benchmark_results.txt";
 
@@ -169,27 +216,44 @@ fn main() {
         println!("Queue size: {}, Batch size: {}, Operations: {}", queue_size, batch_size, operations);
         println!("{}", "=".repeat(75));
 
-        // Insert-Extraction Workload
-        println!("Running Insert-Extraction workload...");
-        let ie_latencies = run_insert_extraction_workload(
+        // Insertion Workload
+        println!("Running Insertion workload...");
+        let insertion_latencies = run_insertion_workload(
             queue_size, operations, batch_size,
             min, queue_size as i64
         );
-        let (ie_mean, ie_stddev) = variance(&ie_latencies);
-        println!("  Mean: {:.2} µs, Stddev: {:.2}", ie_mean / batch_size as f64, ie_stddev / batch_size as f64);
+        let (insertion_mean, insertion_stddev) = variance(&insertion_latencies);
+        println!("  Mean: {:.2} µs, Stddev: {:.2}", insertion_mean / batch_size as f64, insertion_stddev / batch_size as f64);
 
-        // Write Insert-Extraction results to file
+        // Write Insertion results to file
         let mut file = OpenOptions::new()
             .create(true)
             .append(true)
             .open(results_file)
             .expect("Failed to open results file");
 
-        let ie_latencies_str = ie_latencies.iter()
+        let insertion_latencies_str = insertion_latencies.iter()
             .map(|l| l.to_string())
             .collect::<Vec<_>>()
             .join(",");
-        writeln!(file, "Insertion-Extraction,{},{},{}", queue_size, batch_size, ie_latencies_str)
+        writeln!(file, "Insertion,{},{},{}", queue_size, batch_size, insertion_latencies_str)
+            .expect("Failed to write to results file");
+
+        // Extraction Workload
+        println!("Running Extraction workload...");
+        let extraction_latencies = run_extraction_workload(
+            queue_size, operations, batch_size,
+            min, queue_size as i64
+        );
+        let (extraction_mean, extraction_stddev) = variance(&extraction_latencies);
+        println!("  Mean: {:.2} µs, Stddev: {:.2}", extraction_mean / batch_size as f64, extraction_stddev / batch_size as f64);
+
+        // Write Extraction results to file
+        let extraction_latencies_str = extraction_latencies.iter()
+            .map(|l| l.to_string())
+            .collect::<Vec<_>>()
+            .join(",");
+        writeln!(file, "Extraction,{},{},{}", queue_size, batch_size, extraction_latencies_str)
             .expect("Failed to write to results file");
 
         // Removal Workload
