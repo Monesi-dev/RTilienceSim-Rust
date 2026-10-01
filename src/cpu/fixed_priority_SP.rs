@@ -28,6 +28,7 @@
 use crate::base::prelude::{SimTime, RandomVariable, Node, PriorityQueue};
 use crate::debug_println;
 use crate::get_next_id;
+use crate::cpu::stats::Stats;
 use std::collections::{HashMap, BinaryHeap};
 use std::cmp::Reverse;
 
@@ -88,11 +89,13 @@ struct GlobalState {
     ready_queue: BinaryHeap<Reverse<(u32, u64)>>,
 }
 
-/// This struct holds everything needed for the simulation, i.e. the global state and 
-/// the Priority Queue (note that it is built using Generics)
+/// This struct holds everything needed for the simulation, i.e. the global state,
+/// the Priority Queue (note that it is built using Generics) and the struct that 
+/// records statistics
 pub struct CPUSimulatorSP {
     state: GlobalState,
     queue: PriorityQueue<EventType>,
+    stats: Stats,
 }
 
 impl CPUSimulatorSP {
@@ -107,6 +110,7 @@ impl CPUSimulatorSP {
                 ready_queue: BinaryHeap::new(),
             },
             queue: PriorityQueue::new(),
+            stats: Stats::new(),
         }
     }
 
@@ -122,7 +126,8 @@ impl CPUSimulatorSP {
     /// the time at which it first spawns a job (`start_time`) and finally it takes the
     /// RandomVariables used to descrive distribution of execution times of spawned job
     /// (`execution_time_rng`) and of time that goes between two spawning of the job
-    /// (`interarrival_time_rng`)
+    /// (`interarrival_time_rng`). The `store_response_times` flag controls whether
+    /// individual response times are stored for this task.
     pub fn add_task_type(
         mut self,
         start_time: SimTime,
@@ -130,6 +135,7 @@ impl CPUSimulatorSP {
         priority: u32,
         execution_time_rng: Box<dyn RandomVariable>,
         interarrival_time_rng: Box<dyn RandomVariable>,
+        store_response_times: bool,
     ) -> Self {
 
         // Insert TaskType event in priority queue and add Task Desc to global state
@@ -142,6 +148,9 @@ impl CPUSimulatorSP {
         let event_id: u64 = get_next_id();
         self.queue.insert(event_id, start_time, EventType::TaskTrigger).unwrap();
         self.state.event_id_to_task_desc.insert(event_id, task);
+
+        // Updating statistics
+        self.stats.register_task(event_id, store_response_times);
 
         debug_println!("Added task type start_time={}, deadline={}, priority={}", start_time, relative_deadline, priority);
         self
@@ -157,6 +166,7 @@ impl CPUSimulatorSP {
         job_desc.scheduled_on_cpu = Some(current_time);
         let completion_time = current_time + job_desc.remaining_time;
         self.queue.insert(job_id, completion_time, EventType::JobCompletion).unwrap();
+        self.stats.cpu_goes_busy(current_time);
 
         debug_println!("Job-Id: {} scheduled on CPU. Completion-Time: {}", job_id, completion_time);
     }
@@ -165,7 +175,7 @@ impl CPUSimulatorSP {
     /// It takes the running_job_id and current_time, updates the job descriptor,
     /// removes the JobCompletion event, and adds the job to the ready queue.
     fn preempt_running_job(&mut self, running_job_id: u64, current_time: SimTime) {
-        
+
         let preempted_job_desc = self.state.event_id_to_job_descr.get_mut(&running_job_id).unwrap();
         let scheduled_time = preempted_job_desc.scheduled_on_cpu.unwrap();
         let elapsed_time = current_time - scheduled_time;
@@ -173,6 +183,7 @@ impl CPUSimulatorSP {
         preempted_job_desc.scheduled_on_cpu = None;
         self.queue.remove(scheduled_time + preempted_job_desc.remaining_time + elapsed_time, running_job_id);
         self.state.ready_queue.push(Reverse((preempted_job_desc.priority, running_job_id)));
+        self.stats.cpu_goes_idle(current_time);
 
         debug_println!("Job-Id: {} preempted. Remaining-Time: {}", running_job_id, preempted_job_desc.remaining_time
     );
@@ -201,6 +212,16 @@ impl CPUSimulatorSP {
                 }
             }
         }
+    }
+
+    /// Print simulation statistics summary
+    pub fn print_stats(&self) {
+        self.stats.print_summary();
+    }
+
+    /// Dump response times to a CSV file
+    pub fn dump_response_times(&self, filename: &str) -> std::io::Result<()> {
+        self.stats.dump_response_times_to_file(filename)
     }
 
     /// Private handler for TaskTrigger events.
@@ -236,6 +257,9 @@ impl CPUSimulatorSP {
             deadline,
         };
         self.state.event_id_to_job_descr.insert(job_id, job_desc);
+
+        // Updating Statistics
+        self.stats.register_job(job_id, time, event_id);
         debug_println!("Created JobDescriptor. Job-Id: {}, Execution-Time: {}, Deadline: {}, Priority: {}", job_id, execution_time, deadline, priority);
 
         // If CPU is empty schedule on CPU
@@ -268,10 +292,17 @@ impl CPUSimulatorSP {
         // Verify job is the one running on CPU
         assert_eq!(self.state.job_in_cpu, Some(job_id), "JobCompletion for job not in CPU");
 
+        // Record job completion in statistics before removing
+        let job_deadline = self.state.event_id_to_job_descr.get(&job_id).unwrap().deadline;
+        self.stats.record_job_completion(job_id, time, job_deadline);
+
         // Remove completed job
         self.state.job_in_cpu = None;
         self.state.event_id_to_job_descr.remove(&job_id);
         debug_println!("Job-Id: {} completed and removed from CPU", job_id);
+
+        // Stop counting the current CPU time
+        self.stats.cpu_goes_idle(time);
 
         // Schedule next job from ready queue if available
         if let Some(Reverse((_, next_job_id))) = self.state.ready_queue.pop() {
@@ -282,7 +313,8 @@ impl CPUSimulatorSP {
     }
 
     /// Private handler for EndSimulation events.
-    fn handle_end_simulation(&mut self, _node: Node<EventType>) {
+    fn handle_end_simulation(&mut self, node: Node<EventType>) {
         debug_println!("EndSimulation event extracted. Exiting");
+        self.stats.finalize(node.time);
     }
 }
