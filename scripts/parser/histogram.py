@@ -14,6 +14,7 @@ def parse_response_times_csv(filepath):
     Parse the response times CSV file.
 
     Returns a dict mapping task_event_id to list of response times.
+    Handles frequency format: response_time,frequency pairs.
     """
     response_times = {}
     current_task = None
@@ -21,25 +22,18 @@ def parse_response_times_csv(filepath):
     with open(filepath, 'r') as f:
         for line in f:
             line = line.strip()
-
-            # Skip empty lines
             if not line:
                 continue
-
-            # Parse task header
             if line.startswith('# Task'):
-                # Extract event_id from "# Task (event_id=X)"
                 event_id = line.split('event_id=')[1].rstrip(')')
                 current_task = event_id
                 response_times[current_task] = []
-            else:
-                # Parse data line (index,response_time)
-                if current_task is not None and ',' in line:
-                    try:
-                        _, response_time = line.split(',')
-                        response_times[current_task].append(int(response_time))
-                    except ValueError:
-                        pass
+            elif current_task is not None and ',' in line:
+                try:
+                    response_time, frequency = line.split(',')
+                    response_times[current_task].extend([int(response_time)] * int(frequency))
+                except ValueError:
+                    pass
 
     return response_times
 

@@ -1,15 +1,14 @@
-//! # Statistics Module
+//! # Statistics Module for Single-Processor Scheduler
 //!
 //! This module implements the computation of statistics for fixed-priority SP scheduling
 //!
-//! The computed statistics are: 
+//! The computed statistics are:
 //! - ratio of missed deadlines
 //! - per-task tardiness (where tardiness is max(0, end_time - deadline)
 //! - per-task response time
-//! - per-task distibution
+//! - per-task distribution
 //! - cpu usage
 //!
-
 
 use std::collections::HashMap;
 use std::fs::File;
@@ -17,9 +16,9 @@ use std::io::Write;
 use crate::base::prelude::SimTime;
 
 /// Struct holding the information needed for each job to compute statistics
-/// `arrival_time` holds the time at which job was spawned, this value is not stored in 
+/// `arrival_time` holds the time at which job was spawned, this value is not stored in
 /// the global state of the simulation but is needed when computing response time
-/// `task_event_id` holds the id of the task that spawned the job, this link is not 
+/// `task_event_id` holds the id of the task that spawned the job, this link is not
 /// stored in the global state of the simulation but is needed to update per-task stats
 pub struct JobStatDescriptor {
     pub arrival_time: SimTime,
@@ -27,16 +26,14 @@ pub struct JobStatDescriptor {
 }
 
 /// Struct holding the information needed for each task to compute statistics
-/// `response_times` is a Vec with all the response times (only if store_response_times is true)
+/// `response_times_freq` is an Option wrapping a HashMap storing response time -> frequency (only allocated if store_response_times is true)
 /// `num_jobs` is the number of jobs, used when computing "rolling" averages
 /// `avg_response_time` and `avg_tardiness` are self-explanatory
-/// `store_response_times` controls whether individual response times are stored in the Vec
 pub struct TaskStatDescriptor {
-    pub response_times: Vec<SimTime>,
+    pub response_times_freq: Option<HashMap<SimTime, u32>>,
     pub num_jobs: u32,
     pub avg_response_time: SimTime,
     pub avg_tardiness: SimTime,
-    store_response_times: bool,
 }
 
 impl TaskStatDescriptor {
@@ -44,25 +41,20 @@ impl TaskStatDescriptor {
     /// Initializes task statistics with the given store_response_times flag
     fn new(store_response_times: bool) -> Self {
         TaskStatDescriptor {
-            response_times: Vec::new(),
+            response_times_freq: if store_response_times { Some(HashMap::new()) } else { None },
             num_jobs: 0,
             avg_response_time: 0,
             avg_tardiness: 0,
-            store_response_times,
         }
     }
 
-    /// Add a job's response time and tardiness. Only stores response time if store_response_times is true.
+    /// Add a job's response time and tardiness. Only stores response time frequency if HashMap was allocated.
     fn add_job(&mut self, response_time: SimTime, tardiness: SimTime) {
-        if self.store_response_times {
-            self.response_times.push(response_time);
+        if let Some(freq) = &mut self.response_times_freq {
+            *freq.entry(response_time).or_insert(0) += 1;
         }
         self.num_jobs += 1;
-
-        // Update average response time
         self.avg_response_time = (self.avg_response_time * (self.num_jobs - 1) as SimTime + response_time) / self.num_jobs as SimTime;
-
-        // Update average tardiness (simple incremental average)
         self.avg_tardiness = (self.avg_tardiness * (self.num_jobs - 1) as SimTime + tardiness) / self.num_jobs as SimTime;
     }
 }
@@ -211,41 +203,34 @@ impl Stats {
         }
 
         println!("\n---------- PER-TASK STATISTICS ----------");
-
         for (task_event_id, task_stat) in &self.event_id_to_task_stat_descr {
             println!("Task (event_id={})", task_event_id);
             println!("  Number of jobs: {}", task_stat.num_jobs);
             println!("  Average response time: {:.2}", task_stat.avg_response_time);
             println!("  Average tardiness: {:.2}", task_stat.avg_tardiness);
-
-            if !task_stat.response_times.is_empty() {
-                let min_response = task_stat.response_times.iter().min().unwrap();
-                let max_response = task_stat.response_times.iter().max().unwrap();
+            if let Some(freq) = &task_stat.response_times_freq {
+                let min_response = freq.keys().min().unwrap();
+                let max_response = freq.keys().max().unwrap();
                 println!("  Response time range: [{}, {}]", min_response, max_response);
             }
         }
         println!("==========================================\n");
     }
 
-    /// Dump response times for all tasks to a CSV file
+    /// Dump response times for all tasks to a CSV file with frequency format
     pub fn dump_response_times_to_file(&self, filename: &str) -> std::io::Result<()> {
         let mut file = File::create(filename)?;
-
         for (task_event_id, task_stat) in &self.event_id_to_task_stat_descr {
-            if !task_stat.response_times.is_empty() {
-                // Write header for this task
-                writeln!(file, "# Task (event_id={})", task_event_id)?;
-
-                // Write response times as CSV
-                for (idx, response_time) in task_stat.response_times.iter().enumerate() {
-                    writeln!(file, "{},{}", idx, response_time)?;
-                }
-
-                // Empty line between tasks
-                writeln!(file)?;
+            let Some(freq) = &task_stat.response_times_freq else {
+                continue;
+            };
+            writeln!(file, "# Task (event_id={})", task_event_id)?;
+            let mut sorted_times: Vec<_> = freq.iter().collect();
+            sorted_times.sort_by_key(|&(time, _)| time);
+            for (response_time, frequency) in sorted_times {
+                writeln!(file, "{},{}", response_time, frequency)?;
             }
         }
-
         println!("Response times dumped to '{}'", filename);
         Ok(())
     }
@@ -274,17 +259,14 @@ mod tests {
         let mut stats = Stats::new();
         stats.register_task(1, true);
         stats.register_job(100, 10, 1);
-
-        // Job arrives at 10, completes at 150, deadline is 200 (no miss)
         stats.record_job_completion(100, 150, 200);
-
         assert_eq!(stats.jobs_done, 1);
         assert_eq!(stats.jobs_with_missed_deadlines, 0);
-
         let task_stat = stats.get_task_stats(1).unwrap();
         assert_eq!(task_stat.num_jobs, 1);
-        assert_eq!(task_stat.avg_response_time, 140); // 150 - 10
-        assert_eq!(task_stat.avg_tardiness, 0); // max(0, 150 - 200) = 0
+        assert_eq!(task_stat.avg_response_time, 140);
+        assert_eq!(task_stat.avg_tardiness, 0);
+        assert_eq!(task_stat.response_times_freq.as_ref().unwrap().get(&140), Some(&1));
     }
 
     #[test]
@@ -292,17 +274,14 @@ mod tests {
         let mut stats = Stats::new();
         stats.register_task(1, true);
         stats.register_job(100, 10, 1);
-
-        // Job arrives at 10, completes at 250, deadline is 200 (miss)
         stats.record_job_completion(100, 250, 200);
-
         assert_eq!(stats.jobs_done, 1);
         assert_eq!(stats.jobs_with_missed_deadlines, 1);
-
         let task_stat = stats.get_task_stats(1).unwrap();
         assert_eq!(task_stat.num_jobs, 1);
-        assert_eq!(task_stat.avg_response_time, 240); // 250 - 10
-        assert_eq!(task_stat.avg_tardiness, 50); // max(0, 250 - 200) = 50
+        assert_eq!(task_stat.avg_response_time, 240);
+        assert_eq!(task_stat.avg_tardiness, 50);
+        assert_eq!(task_stat.response_times_freq.as_ref().unwrap().get(&240), Some(&1));
     }
 
     #[test]

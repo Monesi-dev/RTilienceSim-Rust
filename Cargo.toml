@@ -58,3 +58,11 @@ path = "benches/profile_insert_extraction_binary_heap.rs"
 [[bin]]
 name = "binary_heap_priority_queue_r_profiling"
 path = "benches/profile_removal_binary_heap.rs"
+
+[[bin]]
+name = "cpu_benchmark"
+path = "src/bin/cpu_benchmark.rs"
+
+[[bin]]
+name = "sp-taskset"
+path = "src/bin/sp-taskset.rs"

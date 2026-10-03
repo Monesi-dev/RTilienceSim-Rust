@@ -1,6 +1,6 @@
-//! # Fixed-Priority Preemptive CPU Scheduler Simulator
+//! # Fixed-Priority Preemptive CPU Scheduler Simulator (Single Processor)
 //!
-//! This modules simulates a fixed-priority scheduling on a single processor
+//! This module simulates a fixed-priority scheduling on a single processor
 //! The simulator uses an event-driven approach where:
 //! - **Events** are extracted from a priority queue ordered by simulation time
 //! - **Handlers** are called for each event type, modifying priority queue and global state
@@ -10,7 +10,7 @@
 //! ### Tasks and Jobs
 //! - A **Task** is a periodic task type defined by relative deadline, priority, and RVs
 //!   for execution time and interarrival time (time between successive job spawns)
-//! - A **Job** is a concrete instance of a task spawned at a specific time. Each job 
+//! - A **Job** is a concrete instance of a task spawned at a specific time. Each job
 //!   has a deadline, priority, execution time requirement, and remaining execution time
 //!
 //! ### Event Types
@@ -25,72 +25,16 @@
 //!
 //! 3. **EndSimulation**: Simulation terminates at the specified end time
 //!
+
 use crate::base::prelude::{SimTime, RandomVariable, Node, PriorityQueue};
 use crate::debug_println;
 use crate::get_next_id;
-use crate::cpu::stats::Stats;
-use std::collections::{HashMap, BinaryHeap};
+use super::state::{EventType, TaskType, JobDescriptor, GlobalState};
+use super::stats::Stats;
 use std::cmp::Reverse;
 
-
-/// Enum with Event types used in this simulation
-/// `TaskTrigger` means that a task is about to spawn a job
-/// `JobCompletion` means that job being executed has ended
-/// `EndSimulation` means that simulation has to stop
-#[derive(Debug, Clone, Copy)]
-enum EventType {
-    TaskTrigger,
-    JobCompletion,
-    EndSimulation,
-}
-
-/// This is a Task Descriptor struct, it is used to store, in the global state, everything
-/// that should be remembered about a task.
-/// `relative_deadline` and `priority` are used to get deadline and priority of spawned job.
-/// `execution_time_rng` is used to sample execution time of spawned job.
-/// `interarrival_time_rng` is used to sample time after which a new job will be spawned.
-#[derive(Debug)]
-struct TaskType {
-    relative_deadline: SimTime,
-    priority: u32,
-    execution_time_rng: Box<dyn RandomVariable>,
-    interarrival_time_rng: Box<dyn RandomVariable>,
-}
-
-/// This is a JOb Descriptor struct, it is used to store, in the global state, everything
-/// that should be known about a task
-/// `scheduled_on_cpu` is the time at which it was scheduled on cpu if it the running
-/// job otherwise it is None
-/// `remaining_time` is the time from scheduled_on_cpu or, if None, from when it will be
-/// scheduled remaining until completion
-/// `priority` and `deadline` are the priority of job and its deadline
-#[derive(Debug)]
-struct JobDescriptor {
-    scheduled_on_cpu: Option<SimTime>,
-    remaining_time: SimTime,
-    priority: u32,
-    deadline: SimTime,
-}
-
-/// This struct holds the global state of the simulation (the whole simulation are simply
-/// handlers called on the basis of the extracted event that modify the state)
-/// `event_id_to_task_descr` is used to map the `event_id` of the message linked to a
-/// specific task to its descriptor
-/// `event_id_to_job_descr` is used to map the `event_id` of the messages linked to a
-/// specific job to its descriptor
-/// `job_in_cpu` holds the event_id of the job currently executed by the CPU, if CPU is
-/// empty then it is NOne
-/// `ready_queue` is a MinHeap keeping the Jobs waiting to be executed, it hold the pair
-/// <priority, job_id>
-struct GlobalState {
-    event_id_to_task_desc: HashMap<u64, TaskType>,
-    event_id_to_job_descr: HashMap<u64, JobDescriptor>,
-    job_in_cpu: Option<u64>,
-    ready_queue: BinaryHeap<Reverse<(u32, u64)>>,
-}
-
 /// This struct holds everything needed for the simulation, i.e. the global state,
-/// the Priority Queue (note that it is built using Generics) and the struct that 
+/// the Priority Queue (note that it is built using Generics) and the struct that
 /// records statistics
 pub struct CPUSimulatorSP {
     state: GlobalState,
@@ -103,12 +47,7 @@ impl CPUSimulatorSP {
     /// It creates an empty global state and empty priority queue
     pub fn new() -> Self {
         CPUSimulatorSP {
-            state: GlobalState {
-                event_id_to_task_desc: HashMap::new(),
-                event_id_to_job_descr: HashMap::new(),
-                job_in_cpu: None,
-                ready_queue: BinaryHeap::new(),
-            },
+            state: GlobalState::new(),
             queue: PriorityQueue::new(),
             stats: Stats::new(),
         }
@@ -265,8 +204,8 @@ impl CPUSimulatorSP {
         // If CPU is empty schedule on CPU
         if self.state.job_in_cpu.is_none() {
             self.schedule_job_on_cpu(job_id, time);
-        } 
-        // Otherwise if it has higher priority preempt and schedule on cpu. If it has 
+        }
+        // Otherwise if it has higher priority preempt and schedule on cpu. If it has
         // lower priority just add to ready queue
         else if let Some(running_job_id) = self.state.job_in_cpu {
             let running_job_priority = self.state.event_id_to_job_descr.get(&running_job_id).unwrap().priority;
