@@ -1,5 +1,5 @@
-use rtilience_sim_rust::base::priority_queue::PriorityQueue;
-use rtilience_sim_rust::base::random_variable::{Uniform, RandomVariable};
+use rtilience_sim_rust::base::priority_queue::BTreeQueue;
+use rtilience_sim_rust::base::stats::{Uniform, RandomVariable};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -27,7 +27,7 @@ fn main() {
     println!("Profiling insert-extraction workload (BTree with simple nodes)...");
     println!("Messages: {}, Operations: {}, Batch size: {}", num_messages, num_operations, batch_size);
 
-    let mut queue: PriorityQueue<EventType> = PriorityQueue::new();
+    let mut queue: BTreeQueue<EventType> = BTreeQueue::new();
     let mut event_data: HashMap<u64, EventData> = HashMap::new();
 
     // Populate queue

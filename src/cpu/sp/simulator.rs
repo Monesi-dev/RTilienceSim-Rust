@@ -26,29 +26,29 @@
 //! 3. **EndSimulation**: Simulation terminates at the specified end time
 //!
 
-use crate::base::prelude::{SimTime, RandomVariable, Node, PriorityQueue};
-use crate::debug_println;
-use crate::get_next_id;
+use crate::base::prelude::{SimTime, RandomVariable, Node, EventQueue};
+use crate::util::get_next_id;
 use super::state::{EventType, TaskType, JobDescriptor, GlobalState};
 use super::stats::Stats;
 use std::cmp::Reverse;
 
 /// This struct holds everything needed for the simulation, i.e. the global state,
 /// the Priority Queue (note that it is built using Generics) and the struct that
-/// records statistics
-pub struct CPUSimulatorSP {
+/// records statistics.
+/// Generic over Q: EventQueue<EventType> for static dispatch to any queue implementation.
+pub struct CPUSimulatorSP<Q: EventQueue<EventType>> {
     state: GlobalState,
-    queue: PriorityQueue<EventType>,
+    queue: Q,
     stats: Stats,
 }
 
-impl CPUSimulatorSP {
+impl<Q: EventQueue<EventType>> CPUSimulatorSP<Q> {
 
-    /// It creates an empty global state and empty priority queue
+    /// Create simulator with a new queue using the generic EventQueue trait
     pub fn new() -> Self {
         CPUSimulatorSP {
             state: GlobalState::new(),
-            queue: PriorityQueue::new(),
+            queue: Q::new(),
             stats: Stats::new(),
         }
     }

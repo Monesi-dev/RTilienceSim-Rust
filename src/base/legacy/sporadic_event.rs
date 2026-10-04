@@ -1,6 +1,6 @@
 use crate::base::sim_time::SimTime;
 use crate::base::priority_queue::Event;
-use crate::base::random_variable::RandomVariable;
+use crate::base::stats::RandomVariable;
 
 /// Event that reschedules itself incrementing time by a value sampled from a RV
 #[derive(Debug)]

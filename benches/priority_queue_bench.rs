@@ -1,5 +1,5 @@
-use rtilience_sim_rust::base::priority_queue::{PriorityQueue, Node};
-use rtilience_sim_rust::base::random_variable::{Uniform, RandomVariable};
+use rtilience_sim_rust::base::priority_queue::{BTreeQueue, Node};
+use rtilience_sim_rust::base::stats::{Uniform, RandomVariable};
 use std::time::Instant;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -39,7 +39,7 @@ fn run_insertion_workload(
     min_dist: i64,
     max_dist: i64,
 ) -> Vec<u128> {
-    let mut queue: PriorityQueue<EventType> = PriorityQueue::new();
+    let mut queue: BTreeQueue<EventType> = BTreeQueue::new();
     let mut event_data: HashMap<u64, EventData> = HashMap::new();
     let mut latencies: Vec<u128> = Vec::with_capacity((num_operations / batch_size) as usize);
 
@@ -91,7 +91,7 @@ fn run_extraction_workload(
     min_time: i64,
     max_time: i64,
 ) -> Vec<u128> {
-    let mut queue: PriorityQueue<EventType> = PriorityQueue::new();
+    let mut queue: BTreeQueue<EventType> = BTreeQueue::new();
     let mut event_data: HashMap<u64, EventData> = HashMap::new();
     let mut latencies: Vec<u128> = Vec::with_capacity((num_operations / batch_size) as usize);
 
@@ -138,7 +138,7 @@ fn run_removal_workload(
     min_dist: i64,
     max_dist: i64,
 ) -> Vec<u128> {
-    let mut queue: PriorityQueue<EventType> = PriorityQueue::new();
+    let mut queue: BTreeQueue<EventType> = BTreeQueue::new();
     let mut event_data: HashMap<u64, EventData> = HashMap::new();
     let mut latencies: Vec<u128> = Vec::with_capacity((num_operations / batch_size) as usize);
 

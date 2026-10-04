@@ -7,27 +7,27 @@
 //! - **Processors** have a global ready queue; the M highest-priority jobs run on M processors
 //!
 
-use crate::base::prelude::{SimTime, RandomVariable, Node, PriorityQueue};
-use crate::debug_println;
-use crate::get_next_id;
+use crate::base::prelude::{SimTime, RandomVariable, Node, EventQueue};
+use crate::util::get_next_id;
 use super::state::{EventType, TaskType, JobDescriptor, GlobalState};
 use super::stats::Stats;
 use std::cmp::Reverse;
 
-pub struct CPUSimulatorMP {
+/// Generic over Q: EventQueue<EventType> for static dispatch to any queue implementation.
+pub struct CPUSimulatorMP<Q: EventQueue<EventType>> {
     num_cpus: usize,
     state: GlobalState,
-    queue: PriorityQueue<EventType>,
+    queue: Q,
     stats: Stats,
 }
 
-impl CPUSimulatorMP {
+impl<Q: EventQueue<EventType>> CPUSimulatorMP<Q> {
 
     pub fn new(num_cpus: usize) -> Self {
         CPUSimulatorMP {
             num_cpus,
             state: GlobalState::new(num_cpus),
-            queue: PriorityQueue::new(),
+            queue: Q::new(),
             stats: Stats::new(num_cpus),
         }
     }

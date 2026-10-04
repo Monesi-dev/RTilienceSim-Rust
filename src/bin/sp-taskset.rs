@@ -15,8 +15,9 @@ use std::io::{BufRead, BufReader};
 use std::process;
 
 use rtilience_sim_rust::cpu::CPUSimulatorSP;
-use rtilience_sim_rust::base::random_variable::Deterministic;
-use rtilience_sim_rust::base::prelude::SimTime;
+use rtilience_sim_rust::cpu::sp::state::EventType;
+use rtilience_sim_rust::base::stats::Deterministic;
+use rtilience_sim_rust::base::prelude::{SimTime, BTreeQueue};
 
 // Holds info on task descripiton in the file <exec_time, deadline, period>
 struct Task {
@@ -198,8 +199,8 @@ fn main() {
         println!("Computed as Hyperperiod: {} by Number of Hyperperiods: {}", hyperperiod, args.num_hyperperiods);
     }
 
-    // Build simulator
-    let mut simulator = CPUSimulatorSP::new().with_end_time(finishing_time);
+    // Build simulator with BTreeQueue (BTreeMap-based) EventQueue implementation
+    let mut simulator: CPUSimulatorSP<BTreeQueue<EventType>> = CPUSimulatorSP::new().with_end_time(finishing_time);
 
     // Add tasks with deterministic execution times
     // Priority is assigned based on task order (task index + 1)

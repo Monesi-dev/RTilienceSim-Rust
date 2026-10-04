@@ -1,11 +1,11 @@
 use crate::base::sim_time::SimTime;
-use crate::base::priority_queue::{PriorityQueue, Event};
+use crate::base::priority_queue::{BTreeQueue, Event};
 
 /// Event list that manages simulation events
-/// Embeds a PriorityQueue and adds event execution capabilities
+/// Embeds a BTreeQueue and adds event execution capabilities
 #[derive(Debug)]
 pub struct EventList {
-    queue: PriorityQueue,
+    queue: BTreeQueue<Box<dyn Event>>,
     last_time: SimTime,
 }
 
@@ -13,7 +13,7 @@ impl EventList {
 
     pub fn new() -> Self {
         EventList {
-            queue: PriorityQueue::new(),
+            queue: BTreeQueue::new(),
             last_time: SimTime::MAX,
         }
     }

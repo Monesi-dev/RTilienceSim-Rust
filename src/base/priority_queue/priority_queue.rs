@@ -1,4 +1,5 @@
 use crate::base::sim_time::SimTime;
+use super::priority_queue_trait::EventQueue;
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 
@@ -22,14 +23,14 @@ pub struct Node<T: Debug + Copy> {
 // Stores nodes with time, event_id, and event_type; actual event data is managed externally by the scheduler.
 // Since multiple events can occur at the same time, we store a vector of nodes.
 #[derive(Debug)]
-pub struct PriorityQueue<T: Debug + Copy> {
+pub struct BTreeQueue<T: Debug + Copy> {
     items: BTreeMap<SimTime, Vec<Node<T>>>,
     total_count: usize,
 }
 
-impl<T: Debug + Copy> PriorityQueue<T> {
+impl<T: Debug + Copy> BTreeQueue<T> {
     pub fn new() -> Self {
-        PriorityQueue {
+        BTreeQueue {
             items: BTreeMap::new(),
             total_count: 0,
         }
@@ -105,7 +106,44 @@ impl<T: Debug + Copy> PriorityQueue<T> {
     }
 }
 
-// Unit tests for PriorityQueue
+impl<T: Debug + Copy> EventQueue<T> for BTreeQueue<T> {
+    fn new() -> Self {
+        BTreeQueue {
+            items: BTreeMap::new(),
+            total_count: 0,
+        }
+    }
+
+    fn insert(&mut self, event_id: u64, time: SimTime, event_type: T) -> Result<(), String> {
+        BTreeQueue::insert(self, event_id, time, event_type)
+    }
+
+    fn pop_first(&mut self) -> Option<Node<T>> {
+        BTreeQueue::pop_first(self)
+    }
+
+    fn peek_first(&self) -> Option<SimTime> {
+        BTreeQueue::peek_first(self)
+    }
+
+    fn is_empty(&self) -> bool {
+        BTreeQueue::is_empty(self)
+    }
+
+    fn len(&self) -> usize {
+        BTreeQueue::len(self)
+    }
+
+    fn clear(&mut self) {
+        BTreeQueue::clear(self)
+    }
+
+    fn remove(&mut self, time: SimTime, event_id: u64) -> bool {
+        BTreeQueue::remove(self, time, event_id)
+    }
+}
+
+// Unit tests for BTreeQueue
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -125,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_insert_and_pop() {
-        let mut queue = PriorityQueue::new();
+        let mut queue = BTreeQueue::new();
 
         queue.insert(next_id(), 10, EventType::Arrival).unwrap();
         queue.insert(next_id(), 5, EventType::Departure).unwrap();
@@ -139,7 +177,7 @@ mod tests {
 
     #[test]
     fn test_peek_first() {
-        let mut queue = PriorityQueue::new();
+        let mut queue = BTreeQueue::new();
 
         queue.insert(next_id(), 20, EventType::Arrival).unwrap();
         queue.insert(next_id(), 10, EventType::Departure).unwrap();
@@ -153,7 +191,7 @@ mod tests {
 
     #[test]
     fn test_empty_queue() {
-        let mut queue: PriorityQueue<EventType> = PriorityQueue::new();
+        let mut queue: BTreeQueue<EventType> = BTreeQueue::new();
         assert!(queue.is_empty());
         assert_eq!(queue.len(), 0);
         assert!(queue.pop_first().is_none());
@@ -161,7 +199,7 @@ mod tests {
 
     #[test]
     fn test_negative_time_rejected() {
-        let mut queue = PriorityQueue::new();
+        let mut queue = BTreeQueue::new();
         assert_eq!(
             queue.insert(next_id(), -1, EventType::Arrival),
             Err("Event time cannot be negative".to_string())
@@ -170,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_multiple_events_same_time() {
-        let mut queue = PriorityQueue::new();
+        let mut queue = BTreeQueue::new();
 
         queue.insert(next_id(), 10, EventType::Arrival).unwrap();
         queue.insert(next_id(), 10, EventType::Departure).unwrap();
@@ -186,7 +224,7 @@ mod tests {
 
     #[test]
     fn test_remove_event() {
-        let mut queue = PriorityQueue::new();
+        let mut queue = BTreeQueue::new();
 
         let id1 = next_id();
         let id2 = next_id();

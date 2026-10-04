@@ -465,7 +465,7 @@ mod tests {
     #[test]
     fn test_extract_order_sporadic() {
         use crate::base::sporadic_event::SporadicEvent;
-        use crate::base::random_variable::Uniform;
+        use crate::base::stats::Uniform;
 
         let mut queue = ArenaAcPriorityQueueDLL::with_capacity(100);
 
@@ -491,7 +491,7 @@ mod tests {
     #[test]
     fn test_multiple_reschedules_order() {
         use crate::base::sporadic_event::SporadicEvent;
-        use crate::base::random_variable::Deterministic;
+        use crate::base::stats::Deterministic;
 
         let mut queue = ArenaAcPriorityQueueDLL::with_capacity(100);
 
@@ -530,7 +530,7 @@ mod tests {
     #[test]
     fn test_benchmark_extract_order() {
         use crate::base::sporadic_event::SporadicEvent;
-        use crate::base::random_variable::Uniform;
+        use crate::base::stats::Uniform;
 
         let mut queue = ArenaAcPriorityQueueDLL::with_capacity(1000);
 

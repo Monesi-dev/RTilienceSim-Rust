@@ -12,4 +12,4 @@ echo "Running single-processor task set test..."
 echo "Command: time ./target/release/sp-taskset test-ts-sp.txt -f 2000000000" 
 echo ""
 
-./target/release/sp-taskset ./txt/simulation_scenario/test-ts-sp.txt -f 2000000000 
+./target/release/sp-taskset ./txt/simulation_scenario/test-ts-sp.txt -f 10000000 
