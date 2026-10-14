@@ -18,15 +18,15 @@ echo ""
 echo "N,U,id,time_seconds"
 
 # Loop over all combinations
-# N_VALUES=(2 4 6 8 10 25 50 100)
-N_VALUES=(2 10 100 200)
-# U_VALUES=(0.3 0.5 0.7 0.9)
-U_VALUES=(0.9)
+N_VALUES=(2 4 6 8 10 25 50 100)
+# N_VALUES=(2 10 100 200)
+U_VALUES=(0.3 0.5 0.7 0.9)
+# U_VALUES=(0.9)
 
 for N in "${N_VALUES[@]}"; do
     for U in "${U_VALUES[@]}"; do
-#       for id in {1..10}; do
-        for id in {1..1}; do
+        for id in {1..10}; do
+        #for id in {1..1}; do
             taskset="$TASKSET_DIR/ts_N=${N}_U=${U}_${id}.txt"
 
             # Run and capture execution time using /usr/bin/time

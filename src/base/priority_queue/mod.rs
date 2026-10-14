@@ -5,5 +5,5 @@ mod priority_queue_trait;
 mod arena_queue;
 
 pub use priority_queue::{BTreeQueue, Node, Event};
-pub use priority_queue_trait::EventQueue;
+pub use priority_queue_trait::{EventQueue, EventPriorities};
 pub use arena_queue::ArenaQueue;

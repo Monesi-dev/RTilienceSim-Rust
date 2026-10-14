@@ -5,6 +5,6 @@ pub mod stats;
 
 pub mod prelude {
     pub use crate::base::sim_time::*;
-    pub use crate::base::priority_queue::{BTreeQueue, Node, EventQueue, ArenaQueue};
+    pub use crate::base::priority_queue::{BTreeQueue, Node, EventQueue, EventPriorities, ArenaQueue};
     pub use crate::base::stats::RandomVariable;
 }

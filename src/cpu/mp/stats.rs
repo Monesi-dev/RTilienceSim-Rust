@@ -6,12 +6,19 @@ use std::io::Write;
 use crate::base::prelude::SimTime;
 
 /// Struct holding the information needed for each job to compute statistics
+/// `arrival_time` holds the time at which job was spawned, this value is not stored in
+/// the global state of the simulation but is needed when computing response time
+/// `task_event_id` holds the id of the task that spawned the job, this link is not
+/// stored in the global state of the simulation but is needed to update per-task stats
 pub struct JobStatDescriptor {
     pub arrival_time: SimTime,
     pub task_event_id: u64,
 }
 
 /// Struct holding the information needed for each task to compute statistics
+/// `response_times_freq` is an Option wrapping a HashMap storing response time -> frequency (only allocated if store_response_times is true)
+/// `num_jobs` is the number of jobs, used when computing "rolling" averages
+/// `avg_response_time` and `avg_tardiness` are self-explanatory
 pub struct TaskStatDescriptor {
     pub response_times_freq: Option<HashMap<SimTime, u32>>,
     pub num_jobs: u32,
@@ -21,6 +28,8 @@ pub struct TaskStatDescriptor {
 
 impl TaskStatDescriptor {
 
+    /// Initializes task statistics with Frequency HashMap if response times have to be
+    /// stored otherwise with None
     fn new(store_response_times: bool) -> Self {
         TaskStatDescriptor {
             response_times_freq: if store_response_times { Some(HashMap::new()) } else { None },
@@ -30,6 +39,7 @@ impl TaskStatDescriptor {
         }
     }
 
+    /// Add a job's response time and tardiness. Only stores response time frequency if HashMap was allocated.
     fn add_job(&mut self, response_time: SimTime, tardiness: SimTime) {
         if let Some(freq) = &mut self.response_times_freq {
             *freq.entry(response_time).or_insert(0) += 1;
@@ -41,6 +51,11 @@ impl TaskStatDescriptor {
 }
 
 /// Statistics struct for multi-processor system with per-CPU tracking
+/// `jobs_done` and `jobs_with_missed_deadlines` are used to compute ratio of not met deadlines
+/// `event_id_to_X` are hash maps mapping id of the event to the task or job
+/// `cpu_time_used` accumulates total time that i^th CPU spent executing jobs
+/// `last_time_used` records the time when that i^th CPU transitioned from idle to busy
+/// `simulation_end_time` stores the end time of simulation for that i^th CPU usage computation
 pub struct Stats {
     pub jobs_done: u32,
     pub jobs_with_missed_deadlines: u32,
@@ -67,6 +82,8 @@ impl Stats {
         }
     }
 
+    /// Populates event id -> task descr hash map with an empty (stats set to 0) task
+    /// descr when a task is registered. Takes a flag to control whether response times are stored.
     pub fn register_task(&mut self, task_event_id: u64, store_response_times: bool) {
         self.event_id_to_task_stat_descr.insert(
             task_event_id,
@@ -74,6 +91,8 @@ impl Stats {
         );
     }
 
+    /// Populates job event id -> job descr hash map with a job descr (holding job spawn
+    /// time and id of the task) when a task spawns a job
     pub fn register_job(&mut self, job_event_id: u64, arrival_time: SimTime, task_event_id: u64) {
         self.event_id_to_job_stat_descr.insert(
             job_event_id,
@@ -84,6 +103,8 @@ impl Stats {
         );
     }
 
+    /// When a job is completed this method is called. It updates the global statistics
+    /// (i.e. missed deadlines) and per-task statistics
     pub fn record_job_completion(
         &mut self,
         job_event_id: u64,
@@ -105,6 +126,7 @@ impl Stats {
         task_stat.add_job(response_time, tardiness);
     }
 
+    /// Get the fraction of missed deadlines
     pub fn get_deadline_miss_ratio(&self) -> f64 {
         if self.jobs_done == 0 {
             0.0
@@ -113,6 +135,7 @@ impl Stats {
         }
     }
 
+    /// Get statistics for a specific task
     pub fn get_task_stats(&self, task_event_id: u64) -> Option<&TaskStatDescriptor> {
         self.event_id_to_task_stat_descr.get(&task_event_id)
     }
@@ -123,6 +146,7 @@ impl Stats {
     }
 
     /// Record CPU transition from busy to idle for a specific CPU
+    /// Computes elapsed time since last busy and adds to total CPU time used.
     pub fn cpu_goes_idle(&mut self, cpu_idx: usize, current_time: SimTime) {
         let last_time = self.last_time_used[cpu_idx].unwrap();
         self.cpu_time_used[cpu_idx] += current_time - last_time;
@@ -158,7 +182,8 @@ impl Stats {
         }
     }
 
-    /// Called at the end of the simulation
+    /// Called at the end of the simulation. It sets the total simulation time (used to
+    /// compute CPU usage) and if a job is in cpu it updates the cpu usage time
     pub fn finalize(&mut self, current_time: SimTime) {
         // If any CPU is still running a job at simulation end, account for that time
         for cpu_idx in 0..self.num_cpus {

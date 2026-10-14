@@ -2,7 +2,7 @@
 //!
 //! Contains the data structures that represent the state of the simulation.
 
-use crate::base::prelude::{SimTime, RandomVariable};
+use crate::base::prelude::{SimTime, RandomVariable, EventPriorities};
 use std::collections::{HashMap, BinaryHeap};
 use std::cmp::Reverse;
 
@@ -15,6 +15,22 @@ pub enum EventType {
     TaskTrigger,
     JobCompletion,
     EndSimulation,
+}
+
+/// Tie-breaks events when they have the same time. `JobCompletion` has to happen before
+/// `TaskTrigger` because a task arriving cannot see a cpu with a job with 0 time and
+/// maybe preempt it (which doesn't make sense)
+#[derive(Debug, Clone, Copy)]
+pub struct EventPriorityPolicy;
+
+impl EventPriorities<EventType> for EventPriorityPolicy {
+    fn priority(event_type: &EventType) -> u32 {
+        match event_type {
+            EventType::JobCompletion => 0,
+            EventType::TaskTrigger => 1,
+            EventType::EndSimulation => 2,
+        }
+    }
 }
 
 /// This is a Task Descriptor struct, it is used to store, in the global state, everything

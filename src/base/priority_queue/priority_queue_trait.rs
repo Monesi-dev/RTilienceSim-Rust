@@ -4,8 +4,16 @@ use crate::base::sim_time::SimTime;
 use super::priority_queue::Node;
 use std::fmt::Debug;
 
+/// Maps an event variant to a numeric priority used to tie-break events that share the
+/// same simulation time (lower value is popped first). Implementations are expected to
+/// be zero-sized marker types: the mapping is a fixed, compile-time policy rather than
+/// runtime state, so `priority` is an associated function instead of a `&self` method.
+pub trait EventPriorities<T> {
+    fn priority(event_type: &T) -> u32;
+}
+
 /// Trait that all priority queue implementations must satisfy
-pub trait EventQueue<T: Debug + Copy> {
+pub trait EventQueue<T: Debug + Copy, P: EventPriorities<T>> {
     /// Create a new queue with default capacity
     fn new() -> Self;
 

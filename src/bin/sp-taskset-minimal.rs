@@ -16,7 +16,7 @@ use std::io::{BufRead, BufReader};
 use std::process;
 
 use rtilience_sim_rust::cpu::sp::CPUSimulatorSPMinimal;
-use rtilience_sim_rust::cpu::sp::state::EventType;
+use rtilience_sim_rust::cpu::sp::state::{EventType, EventPriorityPolicy};
 use rtilience_sim_rust::base::stats::Deterministic;
 use rtilience_sim_rust::base::prelude::{SimTime, ArenaQueue};
 
@@ -201,15 +201,16 @@ fn main() {
     }
 
     // Build simulator with ArenaQueue EventQueue implementation
-    let mut simulator: CPUSimulatorSPMinimal<ArenaQueue<EventType>> = CPUSimulatorSPMinimal::new().with_end_time(finishing_time);
+    let mut simulator: CPUSimulatorSPMinimal<ArenaQueue<EventType, EventPriorityPolicy>> = CPUSimulatorSPMinimal::new().with_end_time(finishing_time);
 
     // Add tasks with deterministic execution times
-    // Priority is assigned based on task order (task index + 1)
+    // Priority is assigned so the LAST task in the file gets the highest priority
+    // (lowest numeric value), matching the C++ reference implementation's convention.
     for (idx, task) in tasks.iter().enumerate() {
         simulator = simulator.add_task_type(
             0,                                                  // start_time
             task.deadline,                                      // relative_deadline
-            (idx + 1) as u32,                                   // priority (1-indexed)
+            (tasks.len() - idx) as u32,                         // priority (last task = 1 = highest)
             Box::new(Deterministic::new(task.execution_time)),  // execution_time
             Box::new(Deterministic::new(task.period)),          // period
             true,                                              // store_response_times

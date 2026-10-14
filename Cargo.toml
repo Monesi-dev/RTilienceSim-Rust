@@ -67,3 +67,7 @@ path = "src/bin/sp-taskset.rs"
 [[bin]]
 name = "sp-taskset-minimal"
 path = "src/bin/sp-taskset-minimal.rs"
+
+[[bin]]
+name = "mp-taskset"
+path = "src/bin/mp-taskset.rs"

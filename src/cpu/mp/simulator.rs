@@ -9,23 +9,22 @@
 
 use crate::base::prelude::{SimTime, RandomVariable, Node, EventQueue};
 use crate::util::get_next_id;
-use super::state::{EventType, TaskType, JobDescriptor, GlobalState};
+use super::state::{EventType, TaskType, JobDescriptor, GlobalState, EventPriorityPolicy};
 use super::stats::Stats;
 use std::cmp::Reverse;
 
-/// Generic over Q: EventQueue<EventType> for static dispatch to any queue implementation.
-pub struct CPUSimulatorMP<Q: EventQueue<EventType>> {
-    num_cpus: usize,
+/// Generic over Q: EventQueue<EventType, EventPriorityPolicy> for static dispatch to any
+/// queue implementation.
+pub struct CPUSimulatorMP<Q: EventQueue<EventType, EventPriorityPolicy>> {
     state: GlobalState,
     queue: Q,
     stats: Stats,
 }
 
-impl<Q: EventQueue<EventType>> CPUSimulatorMP<Q> {
+impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMP<Q> {
 
     pub fn new(num_cpus: usize) -> Self {
         CPUSimulatorMP {
-            num_cpus,
             state: GlobalState::new(num_cpus),
             queue: Q::new(),
             stats: Stats::new(num_cpus),
@@ -37,6 +36,7 @@ impl<Q: EventQueue<EventType>> CPUSimulatorMP<Q> {
         self
     }
 
+    // Builder method to set up simulation
     pub fn add_task_type(
         mut self,
         start_time: SimTime,
@@ -47,6 +47,8 @@ impl<Q: EventQueue<EventType>> CPUSimulatorMP<Q> {
         store_response_times: bool,
     ) -> Self {
 
+        // Create Task Descriptor, Insert TaskTrigger event in priority queue and 
+        // update event_id->task_descr mapping
         let task = TaskType {
             relative_deadline,
             priority,
@@ -57,6 +59,7 @@ impl<Q: EventQueue<EventType>> CPUSimulatorMP<Q> {
         self.queue.insert(event_id, start_time, EventType::TaskTrigger).unwrap();
         self.state.event_id_to_task_desc.insert(event_id, task);
 
+        // Sets up task in stats object, pass the flag to tell whether to store times
         self.stats.register_task(event_id, store_response_times);
 
         debug_println!("Added task type start_time={}, deadline={}, priority={}", start_time, relative_deadline, priority);
@@ -65,11 +68,18 @@ impl<Q: EventQueue<EventType>> CPUSimulatorMP<Q> {
 
     /// Schedule a job on a specific CPU
     fn schedule_job_on_cpu(&mut self, job_id: u64, cpu_idx: usize, current_time: SimTime) {
+
+        // Writes job_id on vector mapping i^th cpu to id of job running on it
         self.state.jobs_on_cpu[cpu_idx] = Some(job_id);
+
+        // Access job descriptor and writes scheduled_on_cpu (so time + id of cpu) and 
+        // also insert JobCompletoin event in priority queue
         let job_desc = self.state.event_id_to_job_descr.get_mut(&job_id).unwrap();
         job_desc.scheduled_on_cpu = Some((current_time, cpu_idx));
         let completion_time = current_time + job_desc.remaining_time;
         self.queue.insert(job_id, completion_time, EventType::JobCompletion).unwrap();
+
+        // Tell stats object that cpu has been occpuied by a job
         self.stats.cpu_goes_busy(cpu_idx, current_time);
 
         debug_println!("Job-Id: {} scheduled on CPU {}. Completion-Time: {}", job_id, cpu_idx, completion_time);
@@ -77,13 +87,19 @@ impl<Q: EventQueue<EventType>> CPUSimulatorMP<Q> {
 
     /// Preempt a job on a specific CPU
     fn preempt_job_on_cpu(&mut self, job_id: u64, cpu_idx: usize, current_time: SimTime) {
+        
+        // Get job struct, update its remaining time and set scheduled on cpu to None
         let preempted_job_desc = self.state.event_id_to_job_descr.get_mut(&job_id).unwrap();
         let (scheduled_time, _) = preempted_job_desc.scheduled_on_cpu.unwrap();
         let elapsed_time = current_time - scheduled_time;
         preempted_job_desc.remaining_time -= elapsed_time;
         preempted_job_desc.scheduled_on_cpu = None;
+
+        // Remove the JobCompletion Event and push job to ready queue
         self.queue.remove(scheduled_time + preempted_job_desc.remaining_time + elapsed_time, job_id);
         self.state.ready_queue.push(Reverse((preempted_job_desc.priority, job_id)));
+
+        // Tells the sttas object that cpu has not a job on it
         self.stats.cpu_goes_idle(cpu_idx, current_time);
 
         debug_println!("Job-Id: {} preempted from CPU {}. Remaining-Time: {}", job_id, cpu_idx, preempted_job_desc.remaining_time);
@@ -94,6 +110,8 @@ impl<Q: EventQueue<EventType>> CPUSimulatorMP<Q> {
         let mut lowest_cpu = None;
         let mut lowest_priority = u32::MIN;
 
+        // Iterate over job on cpu, if there is a job then access job descr and if it 
+        // has a lower priority than current lowest then set lowest to this job
         for (cpu_idx, job_id_opt) in self.state.jobs_on_cpu.iter().enumerate() {
             if let Some(job_id) = job_id_opt {
                 let job_desc = self.state.event_id_to_job_descr.get(job_id).unwrap();
@@ -172,21 +190,22 @@ impl<Q: EventQueue<EventType>> CPUSimulatorMP<Q> {
         self.stats.register_job(job_id, time, event_id);
         debug_println!("Created JobDescriptor. Job-Id: {}, Execution-Time: {}, Deadline: {}, Priority: {}", job_id, execution_time, deadline, priority);
 
-        // Try to schedule on an idle CPU
+        // If there is an idle cpu schedule on it
         if let Some(idle_cpu) = self.find_idle_cpu() {
             self.schedule_job_on_cpu(job_id, idle_cpu, time);
+            return;
         }
-        // If no idle CPU, check if we can preempt a lower-priority job
-        else if let Some((preempt_cpu, lowest_priority)) = self.find_cpu_with_lowest_priority_job() {
-            if priority < lowest_priority {
-                let preempted_job_id = self.state.jobs_on_cpu[preempt_cpu].unwrap();
-                debug_println!("Job-Id: {} preempts Job-Id: {} on CPU {}", job_id, preempted_job_id, preempt_cpu);
-                self.preempt_job_on_cpu(preempted_job_id, preempt_cpu, time);
-                self.schedule_job_on_cpu(job_id, preempt_cpu, time);
-            } else {
-                self.state.ready_queue.push(Reverse((priority, job_id)));
-                debug_println!("Job-Id: {} added to ready queue. Priority: {}", job_id, priority);
-            }
+        // If no idle CPU, get CPU with lowest priority and if priority of this task
+        // is higher then preempt and schedule otherwse just add to ready_queue
+        let (preempt_cpu, lowest_priority) = self.find_cpu_with_lowest_priority_job().unwrap();
+        if priority < lowest_priority {
+            let preempted_job_id = self.state.jobs_on_cpu[preempt_cpu].unwrap();
+            debug_println!("Job-Id: {} preempts Job-Id: {} on CPU {}", job_id, preempted_job_id, preempt_cpu);
+            self.preempt_job_on_cpu(preempted_job_id, preempt_cpu, time);
+            self.schedule_job_on_cpu(job_id, preempt_cpu, time);
+        } else {
+            self.state.ready_queue.push(Reverse((priority, job_id)));
+            debug_println!("Job-Id: {} added to ready queue. Priority: {}", job_id, priority);
         }
     }
 

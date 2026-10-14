@@ -28,21 +28,22 @@
 
 use crate::base::prelude::{SimTime, RandomVariable, Node, EventQueue};
 use crate::util::get_next_id;
-use super::state::{EventType, TaskType, JobDescriptor, GlobalState};
+use super::state::{EventType, TaskType, JobDescriptor, GlobalState, EventPriorityPolicy};
 use super::stats_minimal::Stats;
 use std::cmp::Reverse;
 
 /// This struct holds everything needed for the simulation, i.e. the global state,
 /// the Priority Queue (note that it is built using Generics) and the struct that
 /// records statistics. Minimal version with only response time tracking.
-/// Generic over Q: EventQueue<EventType> for static dispatch to any queue implementation.
-pub struct CPUSimulatorSPMinimal<Q: EventQueue<EventType>> {
+/// Generic over Q: EventQueue<EventType, EventPriorityPolicy> for static dispatch to any
+/// queue implementation.
+pub struct CPUSimulatorSPMinimal<Q: EventQueue<EventType, EventPriorityPolicy>> {
     state: GlobalState,
     queue: Q,
     stats: Stats,
 }
 
-impl<Q: EventQueue<EventType>> CPUSimulatorSPMinimal<Q> {
+impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorSPMinimal<Q> {
 
     /// Create simulator with a new queue using the generic EventQueue trait
     pub fn new() -> Self {

@@ -38,7 +38,8 @@ pub struct TaskStatDescriptor {
 
 impl TaskStatDescriptor {
 
-    /// Initializes task statistics with the given store_response_times flag
+    /// Initializes task statistics with Frequency HashMap if response times have to be
+    /// stored otherwise with None
     fn new(store_response_times: bool) -> Self {
         TaskStatDescriptor {
             response_times_freq: if store_response_times { Some(HashMap::new()) } else { None },

@@ -3,9 +3,10 @@
 
 use crate::base::sim_time::SimTime;
 use super::priority_queue::Node;
-use super::priority_queue_trait::EventQueue;
+use super::priority_queue_trait::{EventQueue, EventPriorities};
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::marker::PhantomData;
 
 type NodeIdx = usize;
 const INVALID_IDX: NodeIdx = usize::MAX;
@@ -19,6 +20,9 @@ struct ArenaNode<T: Debug + Copy> {
     event_id: u64,
     time: SimTime,
     event_type: T,
+    /// Cached result of `P::priority(&event_type)` at insertion time, used to tie-break
+    /// nodes sharing the same `time` (lower value sorts earlier in the DLL).
+    priority: u32,
     prev: NodeIdx,
     next: NodeIdx,
 }
@@ -27,18 +31,19 @@ struct ArenaNode<T: Debug + Copy> {
 /// > Insertion: O(n) potentially scan all list to find where to put node
 /// > Pop first: O(1) constant time
 /// > Removal: O(1) HashMap lookup to get node and then unlink
-pub struct ArenaQueue<T: Debug + Copy> {
+pub struct ArenaQueue<T: Debug + Copy, P: EventPriorities<T>> {
     arena: Vec<Option<ArenaNode<T>>>, // Pre-allocated vector to store nodes
     index: HashMap<u64, NodeIdx>,     // HashMap event_id->node_idx to have O(1) removal
     head: NodeIdx,                    // Idx of head node
     tail: NodeIdx,                    // Idx of tail node
     total_count: usize,               // Size of DLL
     free_list: Vec<NodeIdx>,          // Vector with Idx that are free
+    _priorities: PhantomData<P>,
 }
 
-// Implementing methods for ArenaQueue that will be used as private helpers when 
+// Implementing methods for ArenaQueue that will be used as private helpers when
 // implementing the EventQueue interface
-impl<T: Debug + Copy> ArenaQueue<T> {
+impl<T: Debug + Copy, P: EventPriorities<T>> ArenaQueue<T, P> {
 
     /// Given a size you return an empty ArenaDLL with a size pre-allocated vector
     pub fn with_capacity(capacity: usize) -> Self {
@@ -55,6 +60,7 @@ impl<T: Debug + Copy> ArenaQueue<T> {
             tail: INVALID_IDX,
             total_count: 0,
             free_list,
+            _priorities: PhantomData,
         }
     }
 
@@ -63,10 +69,10 @@ impl<T: Debug + Copy> ArenaQueue<T> {
         Self::with_capacity(1024)
     }
 
-    /// Given <event_id, time, event_type> it finds an empty cell of the ArenaAllocator
-    /// creates a node in it and returns the index. The node is just allocated but not
-    /// added to the DLL
-    fn allocate(&mut self, event_id: u64, time: SimTime, event_type: T) -> NodeIdx {
+    /// Given <event_id, time, event_type, priority> it finds an empty cell of the
+    /// ArenaAllocator creates a node in it and returns the index. The node is just
+    /// allocated but not added to the DLL
+    fn allocate(&mut self, event_id: u64, time: SimTime, event_type: T, priority: u32) -> NodeIdx {
 
         // If there is space in the vector pop a free index, allocate node there
         if let Some(idx) = self.free_list.pop() {
@@ -74,11 +80,12 @@ impl<T: Debug + Copy> ArenaQueue<T> {
                 event_id,
                 time,
                 event_type,
+                priority,
                 prev: INVALID_IDX,
                 next: INVALID_IDX,
             });
             idx
-        } 
+        }
         // Otherwise add a new element to the array and allocate there
         else {
             let idx = self.arena.len();
@@ -86,6 +93,7 @@ impl<T: Debug + Copy> ArenaQueue<T> {
                 event_id,
                 time,
                 event_type,
+                priority,
                 prev: INVALID_IDX,
                 next: INVALID_IDX,
             }));
@@ -104,15 +112,15 @@ impl<T: Debug + Copy> ArenaQueue<T> {
 }
 
 // Implementing EventQueue trait for ArenaQueue
-impl<T: Debug + Copy> EventQueue<T> for ArenaQueue<T> {
-    
+impl<T: Debug + Copy, P: EventPriorities<T>> EventQueue<T, P> for ArenaQueue<T, P> {
+
     /// New trait just uses ArenaQueue constructor
     fn new() -> Self {
         ArenaQueue::new()
     }
 
-    /// Given the <event_id, time, event_type> triplet it creates a Node to be added in 
-    /// the DLL. 
+    /// Given the <event_id, time, event_type> triplet it creates a Node to be added in
+    /// the DLL.
     fn insert(&mut self, event_id: u64, time: SimTime, event_type: T) -> Result<(), String> {
 
         // Discards negative time
@@ -121,7 +129,8 @@ impl<T: Debug + Copy> EventQueue<T> for ArenaQueue<T> {
         }
 
         // Allocates new node and create event_id->node_idx mapping
-        let new_idx = self.allocate(event_id, time, event_type);
+        let priority = P::priority(&event_type);
+        let new_idx = self.allocate(event_id, time, event_type, priority);
         self.index.insert(event_id, new_idx);
 
         // If list is empty just put it as head
@@ -130,17 +139,20 @@ impl<T: Debug + Copy> EventQueue<T> for ArenaQueue<T> {
             self.tail = new_idx;
             self.total_count += 1;
             return Ok(());
-        } 
-        
-        // Otherwise iterate from head onwards until you find a node with time >= than
-        // new time and insert right before it
+        }
+
+        // Otherwise iterate from head onwards until you find a node with (time, priority,
+        // event_id) >= than the new node's key and insert right before it. Comparing the
+        // full tuple (rather than just time) ties-breaks equal time events using priority,
+        // then using event_id if priority is also equal.
         let mut current = self.head;
         loop {
 
-            // Get reference to node, copy time and if time >= new node time then add
+            // Get reference to node, copy time and if key >= new node key then add
             // new node right before it
-            let current_time = self.arena[current].as_ref().unwrap().time;
-            if time <= current_time {
+            let current_node = self.arena[current].as_ref().unwrap();
+            let current_key = (current_node.time, current_node.priority, current_node.event_id);
+            if (time, priority, event_id) <= current_key {
 
                 // Save previous node index of current node. Then link current node with 
                 // new node 
@@ -184,12 +196,13 @@ impl<T: Debug + Copy> EventQueue<T> for ArenaQueue<T> {
             return None;
         }
 
-        // Get reference to head node and extract <event_id, time, event_type> triplet 
+        // Get reference to head node and extract <event_id, time, event_type, priority>
         let idx = self.head;
         let node = self.arena[idx].as_ref().unwrap();
         let event_id = node.event_id;
         let time = node.time;
         let event_type = node.event_type;
+        let priority = node.priority;
 
         // Remove head node if following node exists then sets it as head (and remove its
         // prev idx pointer). Otherwise just make head and tail invalid as list is empty
@@ -207,11 +220,12 @@ impl<T: Debug + Copy> EventQueue<T> for ArenaQueue<T> {
         self.deallocate(idx);
         self.total_count -= 1;
 
-        // Return <event_id, time, event_type> triplet wrapped in Node struct
+        // Return <event_id, time, event_type, priority> wrapped in Node struct
         Some(Node {
             event_id,
             time,
             event_type,
+            priority,
         })
     }
 
@@ -293,9 +307,21 @@ mod tests {
         Type2,
     }
 
+    #[derive(Debug, Clone, Copy)]
+    struct TestPriorities;
+
+    impl EventPriorities<TestEvent> for TestPriorities {
+        fn priority(event_type: &TestEvent) -> u32 {
+            match event_type {
+                TestEvent::Type1 => 0,
+                TestEvent::Type2 => 1,
+            }
+        }
+    }
+
     #[test]
     fn test_insert_and_pop() {
-        let mut queue: ArenaQueue<TestEvent> = ArenaQueue::new();
+        let mut queue: ArenaQueue<TestEvent, TestPriorities> = ArenaQueue::new();
         queue.insert(1, 10, TestEvent::Type1).unwrap();
         queue.insert(2, 5, TestEvent::Type2).unwrap();
         queue.insert(3, 15, TestEvent::Type1).unwrap();
@@ -308,7 +334,7 @@ mod tests {
 
     #[test]
     fn test_remove() {
-        let mut queue: ArenaQueue<TestEvent> = ArenaQueue::new();
+        let mut queue: ArenaQueue<TestEvent, TestPriorities> = ArenaQueue::new();
         queue.insert(1, 10, TestEvent::Type1).unwrap();
         queue.insert(2, 20, TestEvent::Type2).unwrap();
         queue.insert(3, 30, TestEvent::Type1).unwrap();
