@@ -1,0 +1,1184 @@
+<example[ceccecd8beb92274]::PriorityQueueDLL>::insert:
+        sub     rsp, 1048
+        mov     qword ptr [rsp + 480], rsi
+        mov     qword ptr [rsp + 488], rdi
+        mov     qword ptr [rsp + 496], rdi
+        mov     qword ptr [rsp + 512], rdx
+        mov     qword ptr [rsp + 520], rcx
+        mov     qword ptr [rsp + 928], rsi
+        mov     byte ptr [rsp + 917], 0
+        mov     byte ptr [rsp + 927], 0
+        mov     byte ptr [rsp + 925], 0
+        mov     byte ptr [rsp + 924], 0
+        mov     byte ptr [rsp + 923], 0
+        mov     byte ptr [rsp + 922], 0
+        mov     byte ptr [rsp + 921], 0
+        mov     byte ptr [rsp + 920], 0
+        mov     byte ptr [rsp + 919], 0
+        mov     byte ptr [rsp + 918], 0
+        mov     byte ptr [rsp + 926], 0
+        mov     byte ptr [rsp + 917], 1
+        mov     rdi, qword ptr [rsp + 512]
+        mov     rax, qword ptr [rsp + 520]
+        mov     rax, qword ptr [rax + 32]
+        call    rax
+        mov     qword ptr [rsp + 504], rax
+        jmp     .LBB35_3
+.LBB35_1:
+        test    byte ptr [rsp + 917], 1
+        jne     .LBB35_185
+        jmp     .LBB35_184
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_1
+.LBB35_3:
+        mov     rax, qword ptr [rsp + 504]
+        mov     qword ptr [rsp + 952], rax
+        cmp     rax, 0
+        jl      .LBB35_5
+        mov     byte ptr [rsp + 917], 0
+        mov     rsi, qword ptr [rsp + 512]
+        mov     rdx, qword ptr [rsp + 520]
+        lea     rdi, [rsp + 600]
+        call    <example[ceccecd8beb92274]::Node>::new
+        jmp     .LBB35_6
+.LBB35_5:
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.26]
+        mov     rax, qword ptr [rip + <str as alloc[93e694a8365d93dd]::string::ToString>::to_string@GOTPCREL]
+        lea     rdi, [rsp + 528]
+        mov     edx, 29
+        call    rax
+        jmp     .LBB35_182
+.LBB35_6:
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::new@GOTPCREL]
+        lea     rdi, [rsp + 560]
+        lea     rsi, [rsp + 600]
+        call    rax
+        jmp     .LBB35_7
+.LBB35_7:
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>::new@GOTPCREL]
+        lea     rdi, [rsp + 560]
+        call    rax
+        mov     qword ptr [rsp + 472], rax
+        jmp     .LBB35_8
+.LBB35_8:
+        mov     rdi, qword ptr [rsp + 480]
+        mov     rax, qword ptr [rsp + 472]
+        mov     qword ptr [rsp + 552], rax
+        mov     byte ptr [rsp + 927], 1
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>::is_none@GOTPCREL]
+        call    rax
+        mov     byte ptr [rsp + 471], al
+        jmp     .LBB35_11
+.LBB35_9:
+        test    byte ptr [rsp + 927], 1
+        jne     .LBB35_181
+        jmp     .LBB35_1
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_9
+.LBB35_11:
+        mov     al, byte ptr [rsp + 471]
+        test    al, 1
+        jne     .LBB35_13
+        jmp     .LBB35_12
+.LBB35_12:
+        mov     rdi, qword ptr [rsp + 480]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 456], rax
+        jmp     .LBB35_14
+.LBB35_13:
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        lea     rdi, [rsp + 552]
+        call    rax
+        mov     qword ptr [rsp + 448], rax
+        jmp     .LBB35_172
+.LBB35_14:
+        mov     rax, qword ptr [rsp + 456]
+        mov     qword ptr [rsp + 632], rax
+        mov     byte ptr [rsp + 926], 1
+        mov     byte ptr [rsp + 647], 0
+.LBB35_15:
+        mov     rdx, qword ptr [rsp + 632]
+        mov     eax, 1
+        xor     ecx, ecx
+        cmp     rdx, 0
+        cmove   rax, rcx
+        test    rax, 1
+        je      .LBB35_17
+        mov     byte ptr [rsp + 926], 0
+        mov     rax, qword ptr [rsp + 632]
+        mov     qword ptr [rsp + 648], rax
+        lea     rax, [rsp + 648]
+        mov     qword ptr [rsp + 1040], rax
+        mov     rax, qword ptr [rsp + 648]
+        add     rax, 16
+        mov     qword ptr [rsp + 440], rax
+        jmp     .LBB35_20
+.LBB35_17:
+        test    byte ptr [rsp + 647], 1
+        jne     .LBB35_128
+        jmp     .LBB35_127
+.LBB35_18:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>@GOTPCREL]
+        lea     rdi, [rsp + 648]
+        call    rax
+        jmp     .LBB35_36
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_18
+.LBB35_20:
+        mov     rdi, qword ptr [rsp + 440]
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.15]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::borrow@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 424], rdx
+        mov     qword ptr [rsp + 432], rax
+        jmp     .LBB35_21
+.LBB35_21:
+        mov     rax, qword ptr [rsp + 424]
+        mov     rcx, qword ptr [rsp + 432]
+        mov     qword ptr [rsp + 656], rcx
+        mov     qword ptr [rsp + 664], rax
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::Ref<example[ceccecd8beb92274]::Node> as core[8c5ac2f034688f9a]::ops::deref::Deref>::deref@GOTPCREL]
+        lea     rdi, [rsp + 656]
+        call    rax
+        mov     qword ptr [rsp + 416], rax
+        jmp     .LBB35_24
+.LBB35_22:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::Ref<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 656]
+        call    rax
+        jmp     .LBB35_18
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_22
+.LBB35_24:
+        mov     rax, qword ptr [rsp + 416]
+        mov     rdi, qword ptr [rax]
+        mov     rax, qword ptr [rax + 8]
+        mov     rax, qword ptr [rax + 32]
+        call    rax
+        mov     qword ptr [rsp + 408], rax
+        jmp     .LBB35_25
+.LBB35_25:
+        mov     rax, qword ptr [rsp + 408]
+        mov     qword ptr [rsp + 960], rax
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::Ref<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 656]
+        call    rax
+        jmp     .LBB35_26
+.LBB35_26:
+        mov     rax, qword ptr [rsp + 408]
+        mov     rcx, qword ptr [rsp + 504]
+        cmp     rax, rcx
+        jge     .LBB35_28
+        lea     rax, [rsp + 648]
+        mov     qword ptr [rsp + 1032], rax
+        mov     rax, qword ptr [rsp + 648]
+        add     rax, 16
+        mov     qword ptr [rsp + 400], rax
+        jmp     .LBB35_29
+.LBB35_28:
+        lea     rax, [rsp + 648]
+        mov     qword ptr [rsp + 1024], rax
+        mov     rax, qword ptr [rsp + 648]
+        add     rax, 16
+        mov     qword ptr [rsp + 392], rax
+        jmp     .LBB35_39
+.LBB35_29:
+        mov     rdi, qword ptr [rsp + 400]
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.16]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::borrow_mut@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 376], rdx
+        mov     qword ptr [rsp + 384], rax
+        jmp     .LBB35_30
+.LBB35_30:
+        mov     rax, qword ptr [rsp + 376]
+        mov     rcx, qword ptr [rsp + 384]
+        mov     qword ptr [rsp + 832], rcx
+        mov     qword ptr [rsp + 840], rax
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node> as core[8c5ac2f034688f9a]::ops::deref::Deref>::deref@GOTPCREL]
+        lea     rdi, [rsp + 832]
+        call    rax
+        mov     qword ptr [rsp + 368], rax
+        jmp     .LBB35_33
+.LBB35_31:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 832]
+        call    rax
+        jmp     .LBB35_18
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_31
+.LBB35_33:
+        mov     rdi, qword ptr [rsp + 368]
+        add     rdi, 24
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 360], rax
+        jmp     .LBB35_34
+.LBB35_34:
+        mov     rax, qword ptr [rsp + 360]
+        mov     byte ptr [rsp + 926], 1
+        mov     qword ptr [rsp + 632], rax
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 832]
+        call    rax
+        jmp     .LBB35_35
+.LBB35_35:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>@GOTPCREL]
+        lea     rdi, [rsp + 648]
+        call    rax
+        jmp     .LBB35_15
+.LBB35_36:
+        mov     rdx, qword ptr [rsp + 632]
+        mov     eax, 1
+        xor     ecx, ecx
+        cmp     rdx, 0
+        cmove   rax, rcx
+        cmp     rax, 1
+        je      .LBB35_170
+        jmp     .LBB35_9
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_36
+        call    qword ptr [rip + core[8c5ac2f034688f9a]::panicking::panic_in_cleanup@GOTPCREL]
+.LBB35_39:
+        mov     rdi, qword ptr [rsp + 392]
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.17]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::borrow_mut@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 344], rdx
+        mov     qword ptr [rsp + 352], rax
+        jmp     .LBB35_40
+.LBB35_40:
+        mov     rax, qword ptr [rsp + 344]
+        mov     rcx, qword ptr [rsp + 352]
+        mov     qword ptr [rsp + 680], rcx
+        mov     qword ptr [rsp + 688], rax
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node> as core[8c5ac2f034688f9a]::ops::deref::Deref>::deref@GOTPCREL]
+        lea     rdi, [rsp + 680]
+        call    rax
+        mov     qword ptr [rsp + 336], rax
+        jmp     .LBB35_43
+.LBB35_41:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 680]
+        call    rax
+        jmp     .LBB35_18
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_41
+.LBB35_43:
+        mov     rdi, qword ptr [rsp + 336]
+        add     rdi, 16
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 328], rax
+        jmp     .LBB35_44
+.LBB35_44:
+        mov     rax, qword ptr [rsp + 328]
+        mov     qword ptr [rsp + 672], rax
+        mov     byte ptr [rsp + 925], 1
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 680]
+        call    rax
+        jmp     .LBB35_47
+.LBB35_45:
+        test    byte ptr [rsp + 925], 1
+        jne     .LBB35_126
+        jmp     .LBB35_18
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_45
+.LBB35_47:
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>::downgrade@GOTPCREL]
+        lea     rdi, [rsp + 552]
+        call    rax
+        mov     qword ptr [rsp + 320], rax
+        jmp     .LBB35_48
+.LBB35_48:
+        mov     rax, qword ptr [rsp + 320]
+        mov     byte ptr [rsp + 924], 1
+        mov     qword ptr [rsp + 696], rax
+        lea     rax, [rsp + 648]
+        mov     qword ptr [rsp + 1016], rax
+        mov     rax, qword ptr [rsp + 648]
+        add     rax, 16
+        mov     qword ptr [rsp + 312], rax
+        jmp     .LBB35_51
+.LBB35_49:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 696]
+        call    rax
+        jmp     .LBB35_45
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_49
+.LBB35_51:
+        mov     rdi, qword ptr [rsp + 312]
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.18]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::borrow_mut@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 296], rdx
+        mov     qword ptr [rsp + 304], rax
+        jmp     .LBB35_52
+.LBB35_52:
+        mov     rax, qword ptr [rsp + 296]
+        mov     rcx, qword ptr [rsp + 304]
+        mov     qword ptr [rsp + 704], rcx
+        mov     qword ptr [rsp + 712], rax
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node> as core[8c5ac2f034688f9a]::ops::deref::DerefMut>::deref_mut@GOTPCREL]
+        lea     rdi, [rsp + 704]
+        call    rax
+        mov     qword ptr [rsp + 288], rax
+        jmp     .LBB35_55
+.LBB35_53:
+        test    byte ptr [rsp + 924], 1
+        jne     .LBB35_125
+        jmp     .LBB35_124
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_53
+.LBB35_55:
+        mov     rdi, qword ptr [rsp + 288]
+        add     rdi, 16
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_58
+.LBB35_56:
+        mov     rax, qword ptr [rsp + 288]
+        mov     byte ptr [rsp + 924], 0
+        mov     rcx, qword ptr [rsp + 696]
+        mov     qword ptr [rax + 16], rcx
+        jmp     .LBB35_53
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_56
+.LBB35_58:
+        mov     rax, qword ptr [rsp + 288]
+        mov     byte ptr [rsp + 924], 0
+        mov     rcx, qword ptr [rsp + 696]
+        mov     qword ptr [rax + 16], rcx
+        mov     byte ptr [rsp + 924], 0
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 704]
+        call    rax
+        jmp     .LBB35_59
+.LBB35_59:
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        lea     rdi, [rsp + 648]
+        call    rax
+        mov     qword ptr [rsp + 280], rax
+        jmp     .LBB35_60
+.LBB35_60:
+        mov     rax, qword ptr [rsp + 280]
+        mov     byte ptr [rsp + 923], 1
+        mov     qword ptr [rsp + 720], rax
+        lea     rax, [rsp + 552]
+        mov     qword ptr [rsp + 1008], rax
+        mov     rax, qword ptr [rsp + 552]
+        add     rax, 16
+        mov     qword ptr [rsp + 272], rax
+        jmp     .LBB35_63
+.LBB35_61:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 720]
+        call    rax
+        jmp     .LBB35_45
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_61
+.LBB35_63:
+        mov     rdi, qword ptr [rsp + 272]
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.19]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::borrow_mut@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 256], rdx
+        mov     qword ptr [rsp + 264], rax
+        jmp     .LBB35_64
+.LBB35_64:
+        mov     rax, qword ptr [rsp + 256]
+        mov     rcx, qword ptr [rsp + 264]
+        mov     qword ptr [rsp + 728], rcx
+        mov     qword ptr [rsp + 736], rax
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node> as core[8c5ac2f034688f9a]::ops::deref::DerefMut>::deref_mut@GOTPCREL]
+        lea     rdi, [rsp + 728]
+        call    rax
+        mov     qword ptr [rsp + 248], rax
+        jmp     .LBB35_67
+.LBB35_65:
+        test    byte ptr [rsp + 923], 1
+        jne     .LBB35_123
+        jmp     .LBB35_122
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_65
+.LBB35_67:
+        mov     rdi, qword ptr [rsp + 248]
+        add     rdi, 24
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_70
+.LBB35_68:
+        mov     rax, qword ptr [rsp + 248]
+        mov     byte ptr [rsp + 923], 0
+        mov     rcx, qword ptr [rsp + 720]
+        mov     qword ptr [rax + 24], rcx
+        jmp     .LBB35_65
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_68
+.LBB35_70:
+        mov     rax, qword ptr [rsp + 248]
+        mov     byte ptr [rsp + 923], 0
+        mov     rcx, qword ptr [rsp + 720]
+        mov     qword ptr [rax + 24], rcx
+        mov     byte ptr [rsp + 923], 0
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 728]
+        call    rax
+        jmp     .LBB35_71
+.LBB35_71:
+        mov     byte ptr [rsp + 925], 0
+        mov     rdi, qword ptr [rsp + 672]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>::and_then::<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>, <example[ceccecd8beb92274]::PriorityQueueDLL>::insert::{closure#0}>@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 240], rax
+        jmp     .LBB35_72
+.LBB35_72:
+        mov     rax, qword ptr [rsp + 240]
+        mov     qword ptr [rsp + 744], rax
+        mov     rdx, qword ptr [rsp + 744]
+        mov     eax, 1
+        xor     ecx, ecx
+        cmp     rdx, 0
+        cmove   rax, rcx
+        test    rax, 1
+        je      .LBB35_74
+        mov     rax, qword ptr [rsp + 744]
+        mov     qword ptr [rsp + 752], rax
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>::downgrade@GOTPCREL]
+        lea     rdi, [rsp + 752]
+        call    rax
+        mov     qword ptr [rsp + 232], rax
+        jmp     .LBB35_77
+.LBB35_74:
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        lea     rdi, [rsp + 552]
+        call    rax
+        mov     qword ptr [rsp + 224], rax
+        jmp     .LBB35_106
+.LBB35_75:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>@GOTPCREL]
+        lea     rdi, [rsp + 752]
+        call    rax
+        jmp     .LBB35_45
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_75
+.LBB35_77:
+        mov     rax, qword ptr [rsp + 232]
+        mov     byte ptr [rsp + 922], 1
+        mov     qword ptr [rsp + 760], rax
+        lea     rax, [rsp + 552]
+        mov     qword ptr [rsp + 1000], rax
+        mov     rax, qword ptr [rsp + 552]
+        add     rax, 16
+        mov     qword ptr [rsp + 216], rax
+        jmp     .LBB35_80
+.LBB35_78:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 760]
+        call    rax
+        jmp     .LBB35_75
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_78
+.LBB35_80:
+        mov     rdi, qword ptr [rsp + 216]
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.20]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::borrow_mut@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 200], rdx
+        mov     qword ptr [rsp + 208], rax
+        jmp     .LBB35_81
+.LBB35_81:
+        mov     rax, qword ptr [rsp + 200]
+        mov     rcx, qword ptr [rsp + 208]
+        mov     qword ptr [rsp + 768], rcx
+        mov     qword ptr [rsp + 776], rax
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node> as core[8c5ac2f034688f9a]::ops::deref::DerefMut>::deref_mut@GOTPCREL]
+        lea     rdi, [rsp + 768]
+        call    rax
+        mov     qword ptr [rsp + 192], rax
+        jmp     .LBB35_84
+.LBB35_82:
+        test    byte ptr [rsp + 922], 1
+        jne     .LBB35_105
+        jmp     .LBB35_104
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_82
+.LBB35_84:
+        mov     rdi, qword ptr [rsp + 192]
+        add     rdi, 16
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_87
+.LBB35_85:
+        mov     rax, qword ptr [rsp + 192]
+        mov     byte ptr [rsp + 922], 0
+        mov     rcx, qword ptr [rsp + 760]
+        mov     qword ptr [rax + 16], rcx
+        jmp     .LBB35_82
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_85
+.LBB35_87:
+        mov     rax, qword ptr [rsp + 192]
+        mov     byte ptr [rsp + 922], 0
+        mov     rcx, qword ptr [rsp + 760]
+        mov     qword ptr [rax + 16], rcx
+        mov     byte ptr [rsp + 922], 0
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 768]
+        call    rax
+        jmp     .LBB35_88
+.LBB35_88:
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        lea     rdi, [rsp + 552]
+        call    rax
+        mov     qword ptr [rsp + 184], rax
+        jmp     .LBB35_89
+.LBB35_89:
+        mov     rax, qword ptr [rsp + 184]
+        mov     byte ptr [rsp + 921], 1
+        mov     qword ptr [rsp + 784], rax
+        lea     rax, [rsp + 752]
+        mov     qword ptr [rsp + 992], rax
+        mov     rax, qword ptr [rsp + 752]
+        add     rax, 16
+        mov     qword ptr [rsp + 176], rax
+        jmp     .LBB35_92
+.LBB35_90:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 784]
+        call    rax
+        jmp     .LBB35_75
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_90
+.LBB35_92:
+        mov     rdi, qword ptr [rsp + 176]
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.21]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::borrow_mut@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 160], rdx
+        mov     qword ptr [rsp + 168], rax
+        jmp     .LBB35_93
+.LBB35_93:
+        mov     rax, qword ptr [rsp + 160]
+        mov     rcx, qword ptr [rsp + 168]
+        mov     qword ptr [rsp + 792], rcx
+        mov     qword ptr [rsp + 800], rax
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node> as core[8c5ac2f034688f9a]::ops::deref::DerefMut>::deref_mut@GOTPCREL]
+        lea     rdi, [rsp + 792]
+        call    rax
+        mov     qword ptr [rsp + 152], rax
+        jmp     .LBB35_96
+.LBB35_94:
+        test    byte ptr [rsp + 921], 1
+        jne     .LBB35_103
+        jmp     .LBB35_102
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_94
+.LBB35_96:
+        mov     rdi, qword ptr [rsp + 152]
+        add     rdi, 24
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_99
+.LBB35_97:
+        mov     rax, qword ptr [rsp + 152]
+        mov     byte ptr [rsp + 921], 0
+        mov     rcx, qword ptr [rsp + 784]
+        mov     qword ptr [rax + 24], rcx
+        jmp     .LBB35_94
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_97
+.LBB35_99:
+        mov     rax, qword ptr [rsp + 152]
+        mov     byte ptr [rsp + 921], 0
+        mov     rcx, qword ptr [rsp + 784]
+        mov     qword ptr [rax + 24], rcx
+        mov     byte ptr [rsp + 921], 0
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 792]
+        call    rax
+        jmp     .LBB35_100
+.LBB35_100:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>@GOTPCREL]
+        lea     rdi, [rsp + 752]
+        call    rax
+        jmp     .LBB35_101
+.LBB35_101:
+        mov     byte ptr [rsp + 647], 1
+        mov     byte ptr [rsp + 925], 0
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>@GOTPCREL]
+        lea     rdi, [rsp + 648]
+        call    rax
+        jmp     .LBB35_17
+.LBB35_102:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 792]
+        call    rax
+        jmp     .LBB35_75
+.LBB35_103:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 784]
+        call    rax
+        jmp     .LBB35_102
+.LBB35_104:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 768]
+        call    rax
+        jmp     .LBB35_75
+.LBB35_105:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 760]
+        call    rax
+        jmp     .LBB35_104
+.LBB35_106:
+        mov     rdi, qword ptr [rsp + 480]
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_109
+.LBB35_107:
+        mov     rax, qword ptr [rsp + 480]
+        mov     rcx, qword ptr [rsp + 224]
+        mov     qword ptr [rax], rcx
+        jmp     .LBB35_45
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_107
+.LBB35_109:
+        mov     rax, qword ptr [rsp + 480]
+        mov     rcx, qword ptr [rsp + 224]
+        mov     qword ptr [rax], rcx
+        mov     byte ptr [rsp + 920], 1
+        mov     qword ptr [rsp + 808], 0
+        lea     rax, [rsp + 552]
+        mov     qword ptr [rsp + 984], rax
+        mov     rax, qword ptr [rsp + 552]
+        add     rax, 16
+        mov     qword ptr [rsp + 144], rax
+        jmp     .LBB35_112
+.LBB35_110:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 808]
+        call    rax
+        jmp     .LBB35_45
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_110
+.LBB35_112:
+        mov     rdi, qword ptr [rsp + 144]
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.22]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::borrow_mut@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 128], rdx
+        mov     qword ptr [rsp + 136], rax
+        jmp     .LBB35_113
+.LBB35_113:
+        mov     rax, qword ptr [rsp + 128]
+        mov     rcx, qword ptr [rsp + 136]
+        mov     qword ptr [rsp + 816], rcx
+        mov     qword ptr [rsp + 824], rax
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node> as core[8c5ac2f034688f9a]::ops::deref::DerefMut>::deref_mut@GOTPCREL]
+        lea     rdi, [rsp + 816]
+        call    rax
+        mov     qword ptr [rsp + 120], rax
+        jmp     .LBB35_116
+.LBB35_114:
+        test    byte ptr [rsp + 920], 1
+        jne     .LBB35_121
+        jmp     .LBB35_120
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_114
+.LBB35_116:
+        mov     rdi, qword ptr [rsp + 120]
+        add     rdi, 16
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_119
+.LBB35_117:
+        mov     rax, qword ptr [rsp + 120]
+        mov     byte ptr [rsp + 920], 0
+        mov     rcx, qword ptr [rsp + 808]
+        mov     qword ptr [rax + 16], rcx
+        jmp     .LBB35_114
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_117
+.LBB35_119:
+        mov     rax, qword ptr [rsp + 120]
+        mov     byte ptr [rsp + 920], 0
+        mov     rcx, qword ptr [rsp + 808]
+        mov     qword ptr [rax + 16], rcx
+        mov     byte ptr [rsp + 920], 0
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 816]
+        call    rax
+        jmp     .LBB35_101
+.LBB35_120:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 816]
+        call    rax
+        jmp     .LBB35_45
+.LBB35_121:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 808]
+        call    rax
+        jmp     .LBB35_120
+.LBB35_122:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 728]
+        call    rax
+        jmp     .LBB35_45
+.LBB35_123:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 720]
+        call    rax
+        jmp     .LBB35_122
+.LBB35_124:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 704]
+        call    rax
+        jmp     .LBB35_45
+.LBB35_125:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 696]
+        call    rax
+        jmp     .LBB35_124
+.LBB35_126:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 672]
+        call    rax
+        jmp     .LBB35_18
+.LBB35_127:
+        mov     rdi, qword ptr [rsp + 480]
+        add     rdi, 8
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 112], rax
+        jmp     .LBB35_129
+.LBB35_128:
+        mov     rax, qword ptr [rsp + 480]
+        mov     rcx, qword ptr [rax + 16]
+        mov     rax, rcx
+        add     rax, 1
+        mov     qword ptr [rsp + 104], rax
+        cmp     rax, rcx
+        jb      .LBB35_167
+        jmp     .LBB35_166
+.LBB35_129:
+        mov     rax, qword ptr [rsp + 112]
+        mov     qword ptr [rsp + 848], rax
+        mov     rdx, qword ptr [rsp + 848]
+        mov     eax, 1
+        xor     ecx, ecx
+        cmp     rdx, 0
+        cmove   rax, rcx
+        test    rax, 1
+        je      .LBB35_131
+        mov     rax, qword ptr [rsp + 848]
+        mov     qword ptr [rsp + 856], rax
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        lea     rdi, [rsp + 552]
+        call    rax
+        mov     qword ptr [rsp + 96], rax
+        jmp     .LBB35_134
+.LBB35_131:
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        lea     rdi, [rsp + 552]
+        call    rax
+        mov     qword ptr [rsp + 88], rax
+        jmp     .LBB35_162
+.LBB35_132:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>@GOTPCREL]
+        lea     rdi, [rsp + 856]
+        call    rax
+        jmp     .LBB35_36
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_132
+.LBB35_134:
+        mov     rax, qword ptr [rsp + 96]
+        mov     byte ptr [rsp + 919], 1
+        mov     qword ptr [rsp + 864], rax
+        lea     rax, [rsp + 856]
+        mov     qword ptr [rsp + 976], rax
+        mov     rax, qword ptr [rsp + 856]
+        add     rax, 16
+        mov     qword ptr [rsp + 80], rax
+        jmp     .LBB35_137
+.LBB35_135:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 864]
+        call    rax
+        jmp     .LBB35_132
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_135
+.LBB35_137:
+        mov     rdi, qword ptr [rsp + 80]
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.23]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::borrow_mut@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 64], rdx
+        mov     qword ptr [rsp + 72], rax
+        jmp     .LBB35_138
+.LBB35_138:
+        mov     rax, qword ptr [rsp + 64]
+        mov     rcx, qword ptr [rsp + 72]
+        mov     qword ptr [rsp + 872], rcx
+        mov     qword ptr [rsp + 880], rax
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node> as core[8c5ac2f034688f9a]::ops::deref::DerefMut>::deref_mut@GOTPCREL]
+        lea     rdi, [rsp + 872]
+        call    rax
+        mov     qword ptr [rsp + 56], rax
+        jmp     .LBB35_141
+.LBB35_139:
+        test    byte ptr [rsp + 919], 1
+        jne     .LBB35_161
+        jmp     .LBB35_160
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_139
+.LBB35_141:
+        mov     rdi, qword ptr [rsp + 56]
+        add     rdi, 24
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_144
+.LBB35_142:
+        mov     rax, qword ptr [rsp + 56]
+        mov     byte ptr [rsp + 919], 0
+        mov     rcx, qword ptr [rsp + 864]
+        mov     qword ptr [rax + 24], rcx
+        jmp     .LBB35_139
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_142
+.LBB35_144:
+        mov     rax, qword ptr [rsp + 56]
+        mov     byte ptr [rsp + 919], 0
+        mov     rcx, qword ptr [rsp + 864]
+        mov     qword ptr [rax + 24], rcx
+        mov     byte ptr [rsp + 919], 0
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 872]
+        call    rax
+        jmp     .LBB35_145
+.LBB35_145:
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>::downgrade@GOTPCREL]
+        lea     rdi, [rsp + 856]
+        call    rax
+        mov     qword ptr [rsp + 48], rax
+        jmp     .LBB35_146
+.LBB35_146:
+        mov     rax, qword ptr [rsp + 48]
+        mov     byte ptr [rsp + 918], 1
+        mov     qword ptr [rsp + 888], rax
+        lea     rax, [rsp + 552]
+        mov     qword ptr [rsp + 968], rax
+        mov     rax, qword ptr [rsp + 552]
+        add     rax, 16
+        mov     qword ptr [rsp + 40], rax
+        jmp     .LBB35_149
+.LBB35_147:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 888]
+        call    rax
+        jmp     .LBB35_132
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_147
+.LBB35_149:
+        mov     rdi, qword ptr [rsp + 40]
+        lea     rsi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.24]
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>::borrow_mut@GOTPCREL]
+        call    rax
+        mov     qword ptr [rsp + 24], rdx
+        mov     qword ptr [rsp + 32], rax
+        jmp     .LBB35_150
+.LBB35_150:
+        mov     rax, qword ptr [rsp + 24]
+        mov     rcx, qword ptr [rsp + 32]
+        mov     qword ptr [rsp + 896], rcx
+        mov     qword ptr [rsp + 904], rax
+        mov     rax, qword ptr [rip + <core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node> as core[8c5ac2f034688f9a]::ops::deref::DerefMut>::deref_mut@GOTPCREL]
+        lea     rdi, [rsp + 896]
+        call    rax
+        mov     qword ptr [rsp + 16], rax
+        jmp     .LBB35_153
+.LBB35_151:
+        test    byte ptr [rsp + 918], 1
+        jne     .LBB35_159
+        jmp     .LBB35_158
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_151
+.LBB35_153:
+        mov     rdi, qword ptr [rsp + 16]
+        add     rdi, 16
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_156
+.LBB35_154:
+        mov     rax, qword ptr [rsp + 16]
+        mov     byte ptr [rsp + 918], 0
+        mov     rcx, qword ptr [rsp + 888]
+        mov     qword ptr [rax + 16], rcx
+        jmp     .LBB35_151
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_154
+.LBB35_156:
+        mov     rax, qword ptr [rsp + 16]
+        mov     byte ptr [rsp + 918], 0
+        mov     rcx, qword ptr [rsp + 888]
+        mov     qword ptr [rax + 16], rcx
+        mov     byte ptr [rsp + 918], 0
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 896]
+        call    rax
+        jmp     .LBB35_157
+.LBB35_157:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>@GOTPCREL]
+        lea     rdi, [rsp + 856]
+        call    rax
+        jmp     .LBB35_131
+.LBB35_158:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 896]
+        call    rax
+        jmp     .LBB35_132
+.LBB35_159:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Weak<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 888]
+        call    rax
+        jmp     .LBB35_158
+.LBB35_160:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::cell::RefMut<example[ceccecd8beb92274]::Node>>@GOTPCREL]
+        lea     rdi, [rsp + 872]
+        call    rax
+        jmp     .LBB35_132
+.LBB35_161:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        lea     rdi, [rsp + 864]
+        call    rax
+        jmp     .LBB35_160
+.LBB35_162:
+        mov     rdi, qword ptr [rsp + 480]
+        add     rdi, 8
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_165
+.LBB35_163:
+        mov     rax, qword ptr [rsp + 480]
+        mov     rcx, qword ptr [rsp + 88]
+        mov     qword ptr [rax + 8], rcx
+        jmp     .LBB35_36
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_163
+.LBB35_165:
+        mov     rax, qword ptr [rsp + 480]
+        mov     rcx, qword ptr [rsp + 88]
+        mov     qword ptr [rax + 8], rcx
+        jmp     .LBB35_128
+.LBB35_166:
+        mov     rax, qword ptr [rsp + 488]
+        mov     rcx, qword ptr [rsp + 480]
+        mov     rdx, qword ptr [rsp + 104]
+        mov     qword ptr [rcx + 16], rdx
+        mov     byte ptr [rsp + 927], 0
+        mov     rcx, qword ptr [rsp + 552]
+        mov     qword ptr [rax + 8], rcx
+        mov     qword ptr [rax], -1
+        mov     byte ptr [rsp + 926], 0
+        mov     byte ptr [rsp + 927], 0
+        jmp     .LBB35_169
+.LBB35_167:
+        lea     rdi, [rip + .Lanon.833d81020349849071ab8d2fe778f0c7.25]
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::panicking::panic_const::panic_const_add_overflow@GOTPCREL]
+        call    rax
+        jmp     .LBB35_168
+.LBB35_168:
+        ud2
+.LBB35_169:
+        mov     rax, qword ptr [rsp + 496]
+        add     rsp, 1048
+        ret
+.LBB35_170:
+        test    byte ptr [rsp + 926], 1
+        je      .LBB35_9
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>@GOTPCREL]
+        lea     rdi, [rsp + 632]
+        call    rax
+        jmp     .LBB35_9
+.LBB35_172:
+        mov     rdi, qword ptr [rsp + 480]
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_175
+.LBB35_173:
+        mov     rax, qword ptr [rsp + 480]
+        mov     rcx, qword ptr [rsp + 448]
+        mov     qword ptr [rax], rcx
+        jmp     .LBB35_9
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_173
+.LBB35_175:
+        mov     rax, qword ptr [rsp + 480]
+        mov     rcx, qword ptr [rsp + 448]
+        mov     qword ptr [rax], rcx
+        mov     rax, qword ptr [rip + <alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>> as core[8c5ac2f034688f9a]::clone::Clone>::clone@GOTPCREL]
+        lea     rdi, [rsp + 552]
+        call    rax
+        mov     qword ptr [rsp + 8], rax
+        jmp     .LBB35_176
+.LBB35_176:
+        mov     rdi, qword ptr [rsp + 480]
+        add     rdi, 8
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<core[8c5ac2f034688f9a]::option::Option<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>>@GOTPCREL]
+        call    rax
+        jmp     .LBB35_179
+.LBB35_177:
+        mov     rax, qword ptr [rsp + 480]
+        mov     rcx, qword ptr [rsp + 8]
+        mov     qword ptr [rax + 8], rcx
+        jmp     .LBB35_9
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 936], rcx
+        mov     dword ptr [rsp + 944], eax
+        jmp     .LBB35_177
+.LBB35_179:
+        mov     rax, qword ptr [rsp + 488]
+        mov     rcx, qword ptr [rsp + 480]
+        mov     rdx, qword ptr [rsp + 8]
+        mov     qword ptr [rcx + 8], rdx
+        mov     qword ptr [rcx + 16], 1
+        mov     byte ptr [rsp + 927], 0
+        mov     rcx, qword ptr [rsp + 552]
+        mov     qword ptr [rax + 8], rcx
+        mov     qword ptr [rax], -1
+        mov     byte ptr [rsp + 927], 0
+.LBB35_180:
+        test    byte ptr [rsp + 917], 1
+        jne     .LBB35_183
+        jmp     .LBB35_169
+.LBB35_181:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::rc::Rc<core[8c5ac2f034688f9a]::cell::RefCell<example[ceccecd8beb92274]::Node>>>@GOTPCREL]
+        lea     rdi, [rsp + 552]
+        call    rax
+        jmp     .LBB35_1
+.LBB35_182:
+        mov     rax, qword ptr [rsp + 488]
+        mov     rcx, qword ptr [rsp + 528]
+        mov     qword ptr [rax], rcx
+        mov     rcx, qword ptr [rsp + 536]
+        mov     qword ptr [rax + 8], rcx
+        mov     rcx, qword ptr [rsp + 544]
+        mov     qword ptr [rax + 16], rcx
+        jmp     .LBB35_180
+.LBB35_183:
+        lea     rdi, [rsp + 512]
+        call    qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::boxed::Box<dyn example[ceccecd8beb92274]::Event>>@GOTPCREL]
+        jmp     .LBB35_169
+.LBB35_184:
+        mov     rdi, qword ptr [rsp + 936]
+        call    _Unwind_Resume@PLT
+.LBB35_185:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::boxed::Box<dyn example[ceccecd8beb92274]::Event>>@GOTPCREL]
+        lea     rdi, [rsp + 512]
+        call    rax
+        jmp     .LBB35_184

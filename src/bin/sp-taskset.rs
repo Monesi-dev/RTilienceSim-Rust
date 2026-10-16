@@ -17,7 +17,7 @@ use std::process;
 use rtilience_sim_rust::cpu::CPUSimulatorSP;
 use rtilience_sim_rust::cpu::sp::state::{EventType, EventPriorityPolicy};
 use rtilience_sim_rust::base::stats::Deterministic;
-use rtilience_sim_rust::base::prelude::{SimTime, BTreeQueue};
+use rtilience_sim_rust::base::prelude::{SimTime, BTreeQueue, ArenaQueue, BinaryHeapQueue, VecQueue};
 
 // Holds info on task descripiton in the file <exec_time, deadline, period>
 struct Task {

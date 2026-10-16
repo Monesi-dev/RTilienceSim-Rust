@@ -244,8 +244,16 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMP<Q> {
         }
     }
 
+    /// Any job still running or sitting in the ready queue never reached
+    /// `handle_job_completion`, so it is accounted for here: if its deadline has
+    /// already passed, it's recorded as an unmet-and-uncompleted job.
     fn handle_end_simulation(&mut self, node: Node<EventType>) {
         debug_println!("EndSimulation event extracted. Exiting");
+
+        for (job_id, job_desc) in &self.state.event_id_to_job_descr {
+            self.stats.record_unfinished_job(*job_id, job_desc.deadline, node.time);
+        }
+
         self.stats.finalize(node.time);
     }
 }

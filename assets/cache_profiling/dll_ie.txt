@@ -1,0 +1,4 @@
+    12,155,559,536      cpu_atom/cache-references/                                              (1.03%)
+    28,157,080,748      cpu_core/cache-references/                                              (98.97%)
+     9,942,068,627      cpu_atom/cache-misses/           #   81.79% of all cache refs           (1.03%)
+    18,084,498,919      cpu_core/cache-misses/           #   64.23% of all cache refs           (98.97%)

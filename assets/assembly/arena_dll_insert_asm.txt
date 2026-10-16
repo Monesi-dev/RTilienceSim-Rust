@@ -1,0 +1,252 @@
+<example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::insert:
+        sub     rsp, 280
+        mov     qword ptr [rsp + 136], rsi
+        mov     qword ptr [rsp + 144], rdi
+        mov     qword ptr [rsp + 152], rdi
+        mov     qword ptr [rsp + 168], rdx
+        mov     qword ptr [rsp + 176], rcx
+        mov     qword ptr [rsp + 224], rsi
+        mov     byte ptr [rsp + 223], 0
+        mov     byte ptr [rsp + 223], 1
+        mov     rdi, qword ptr [rsp + 168]
+        mov     rax, qword ptr [rsp + 176]
+        mov     rax, qword ptr [rax + 32]
+        call    rax
+        mov     qword ptr [rsp + 160], rax
+        jmp     .LBB39_3
+.LBB39_1:
+        test    byte ptr [rsp + 223], 1
+        jne     .LBB39_40
+        jmp     .LBB39_39
+        mov     rcx, rax
+        mov     eax, edx
+        mov     qword ptr [rsp + 232], rcx
+        mov     dword ptr [rsp + 240], eax
+        jmp     .LBB39_1
+.LBB39_3:
+        mov     rax, qword ptr [rsp + 160]
+        mov     qword ptr [rsp + 248], rax
+        cmp     rax, 0
+        jl      .LBB39_5
+        mov     rdi, qword ptr [rsp + 136]
+        mov     byte ptr [rsp + 223], 0
+        mov     rsi, qword ptr [rsp + 168]
+        mov     rdx, qword ptr [rsp + 176]
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::allocate
+        mov     qword ptr [rsp + 128], rax
+        jmp     .LBB39_6
+.LBB39_5:
+        lea     rsi, [rip + .Lanon.6b5145e1d821004a188db5a4e6a440e1.20]
+        mov     rax, qword ptr [rip + <str as alloc[93e694a8365d93dd]::string::ToString>::to_string@GOTPCREL]
+        lea     rdi, [rsp + 184]
+        mov     edx, 29
+        call    rax
+        jmp     .LBB39_37
+.LBB39_6:
+        mov     rax, qword ptr [rsp + 136]
+        mov     rcx, qword ptr [rsp + 128]
+        mov     qword ptr [rsp + 256], rcx
+        cmp     qword ptr [rax + 48], -1
+        je      .LBB39_8
+        mov     rax, qword ptr [rsp + 136]
+        mov     rax, qword ptr [rax + 48]
+        mov     qword ptr [rsp + 208], rax
+        mov     byte ptr [rsp + 222], 0
+        jmp     .LBB39_9
+.LBB39_8:
+        mov     rax, qword ptr [rsp + 144]
+        mov     rcx, qword ptr [rsp + 128]
+        mov     rdx, qword ptr [rsp + 136]
+        mov     qword ptr [rdx + 48], rcx
+        mov     qword ptr [rdx + 56], rcx
+        mov     qword ptr [rdx + 64], 1
+        mov     qword ptr [rax + 8], rcx
+        mov     qword ptr [rax], -1
+        jmp     .LBB39_36
+.LBB39_9:
+        cmp     qword ptr [rsp + 208], -1
+        jne     .LBB39_11
+.LBB39_10:
+        test    byte ptr [rsp + 222], 1
+        jne     .LBB39_27
+        jmp     .LBB39_26
+.LBB39_11:
+        mov     rdi, qword ptr [rsp + 136]
+        mov     rsi, qword ptr [rsp + 208]
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::get_node
+        mov     qword ptr [rsp + 120], rax
+        jmp     .LBB39_12
+.LBB39_12:
+        mov     rax, qword ptr [rsp + 120]
+        mov     rdi, qword ptr [rax]
+        mov     rax, qword ptr [rax + 8]
+        mov     rax, qword ptr [rax + 32]
+        call    rax
+        mov     qword ptr [rsp + 112], rax
+        jmp     .LBB39_13
+.LBB39_13:
+        mov     rax, qword ptr [rsp + 112]
+        mov     rcx, qword ptr [rsp + 160]
+        mov     qword ptr [rsp + 264], rax
+        cmp     rax, rcx
+        jge     .LBB39_15
+        mov     rdi, qword ptr [rsp + 136]
+        mov     rsi, qword ptr [rsp + 208]
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::get_node
+        mov     qword ptr [rsp + 104], rax
+        jmp     .LBB39_16
+.LBB39_15:
+        mov     rdi, qword ptr [rsp + 136]
+        mov     rsi, qword ptr [rsp + 208]
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::get_node
+        mov     qword ptr [rsp + 96], rax
+        jmp     .LBB39_17
+.LBB39_16:
+        mov     rax, qword ptr [rsp + 104]
+        mov     rax, qword ptr [rax + 24]
+        mov     qword ptr [rsp + 208], rax
+        jmp     .LBB39_9
+.LBB39_17:
+        mov     rdi, qword ptr [rsp + 136]
+        mov     rax, qword ptr [rsp + 96]
+        mov     rax, qword ptr [rax + 16]
+        mov     qword ptr [rsp + 80], rax
+        mov     qword ptr [rsp + 272], rax
+        mov     rsi, qword ptr [rsp + 208]
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::get_node_mut
+        mov     qword ptr [rsp + 88], rax
+        jmp     .LBB39_18
+.LBB39_18:
+        mov     rsi, qword ptr [rsp + 128]
+        mov     rdi, qword ptr [rsp + 136]
+        mov     rax, qword ptr [rsp + 88]
+        mov     qword ptr [rax + 16], rsi
+        mov     rax, qword ptr [rsp + 208]
+        mov     qword ptr [rsp + 64], rax
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::get_node_mut
+        mov     qword ptr [rsp + 72], rax
+        jmp     .LBB39_19
+.LBB39_19:
+        mov     rax, qword ptr [rsp + 80]
+        mov     rcx, qword ptr [rsp + 72]
+        mov     rdx, qword ptr [rsp + 64]
+        mov     qword ptr [rcx + 24], rdx
+        cmp     rax, -1
+        jne     .LBB39_21
+        mov     rsi, qword ptr [rsp + 128]
+        mov     rdi, qword ptr [rsp + 136]
+        mov     qword ptr [rdi + 48], rsi
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::get_node_mut
+        mov     qword ptr [rsp + 56], rax
+        jmp     .LBB39_22
+.LBB39_21:
+        mov     rsi, qword ptr [rsp + 128]
+        mov     rdi, qword ptr [rsp + 136]
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::get_node_mut
+        mov     qword ptr [rsp + 48], rax
+        jmp     .LBB39_24
+.LBB39_22:
+        mov     rax, qword ptr [rsp + 56]
+        mov     qword ptr [rax + 16], -1
+.LBB39_23:
+        mov     byte ptr [rsp + 222], 1
+        jmp     .LBB39_10
+.LBB39_24:
+        mov     rsi, qword ptr [rsp + 80]
+        mov     rdi, qword ptr [rsp + 136]
+        mov     rax, qword ptr [rsp + 48]
+        mov     qword ptr [rax + 16], rsi
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::get_node_mut
+        mov     qword ptr [rsp + 40], rax
+        jmp     .LBB39_25
+.LBB39_25:
+        mov     rax, qword ptr [rsp + 40]
+        mov     rcx, qword ptr [rsp + 128]
+        mov     qword ptr [rax + 24], rcx
+        jmp     .LBB39_23
+.LBB39_26:
+        mov     rax, qword ptr [rsp + 136]
+        cmp     qword ptr [rax + 56], -1
+        jne     .LBB39_29
+        jmp     .LBB39_28
+.LBB39_27:
+        mov     rax, qword ptr [rsp + 136]
+        mov     rcx, qword ptr [rax + 64]
+        mov     rax, rcx
+        add     rax, 1
+        mov     qword ptr [rsp + 32], rax
+        cmp     rax, rcx
+        jb      .LBB39_33
+        jmp     .LBB39_32
+.LBB39_28:
+        mov     rax, qword ptr [rsp + 136]
+        mov     rcx, qword ptr [rsp + 128]
+        mov     qword ptr [rax + 56], rcx
+        jmp     .LBB39_27
+.LBB39_29:
+        mov     rdi, qword ptr [rsp + 136]
+        mov     rsi, qword ptr [rdi + 56]
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::get_node_mut
+        mov     qword ptr [rsp + 24], rax
+        jmp     .LBB39_30
+.LBB39_30:
+        mov     rsi, qword ptr [rsp + 128]
+        mov     rdi, qword ptr [rsp + 136]
+        mov     rax, qword ptr [rsp + 24]
+        mov     qword ptr [rax + 24], rsi
+        mov     rax, qword ptr [rdi + 56]
+        mov     qword ptr [rsp + 8], rax
+        call    <example[ceccecd8beb92274]::ArenaAcPriorityQueueDLL>::get_node_mut
+        mov     qword ptr [rsp + 16], rax
+        jmp     .LBB39_31
+.LBB39_31:
+        mov     rax, qword ptr [rsp + 16]
+        mov     rcx, qword ptr [rsp + 8]
+        mov     qword ptr [rax + 16], rcx
+        jmp     .LBB39_28
+.LBB39_32:
+        mov     rax, qword ptr [rsp + 144]
+        mov     rcx, qword ptr [rsp + 128]
+        mov     rdx, qword ptr [rsp + 136]
+        mov     rsi, qword ptr [rsp + 32]
+        mov     qword ptr [rdx + 64], rsi
+        mov     qword ptr [rax + 8], rcx
+        mov     qword ptr [rax], -1
+        jmp     .LBB39_35
+.LBB39_33:
+        lea     rdi, [rip + .Lanon.6b5145e1d821004a188db5a4e6a440e1.19]
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::panicking::panic_const::panic_const_add_overflow@GOTPCREL]
+        call    rax
+        jmp     .LBB39_34
+.LBB39_34:
+        ud2
+.LBB39_35:
+        mov     rax, qword ptr [rsp + 152]
+        add     rsp, 280
+        ret
+.LBB39_36:
+        test    byte ptr [rsp + 223], 1
+        jne     .LBB39_38
+        jmp     .LBB39_35
+.LBB39_37:
+        mov     rax, qword ptr [rsp + 144]
+        mov     rcx, qword ptr [rsp + 184]
+        mov     qword ptr [rax], rcx
+        mov     rcx, qword ptr [rsp + 192]
+        mov     qword ptr [rax + 8], rcx
+        mov     rcx, qword ptr [rsp + 200]
+        mov     qword ptr [rax + 16], rcx
+        jmp     .LBB39_36
+.LBB39_38:
+        lea     rdi, [rsp + 168]
+        call    qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::boxed::Box<dyn example[ceccecd8beb92274]::Event>>@GOTPCREL]
+        jmp     .LBB39_35
+.LBB39_39:
+        mov     rdi, qword ptr [rsp + 232]
+        call    _Unwind_Resume@PLT
+.LBB39_40:
+        mov     rax, qword ptr [rip + core[8c5ac2f034688f9a]::ptr::drop_glue::<alloc[93e694a8365d93dd]::boxed::Box<dyn example[ceccecd8beb92274]::Event>>@GOTPCREL]
+        lea     rdi, [rsp + 168]
+        call    rax
+        jmp     .LBB39_39
+        call    qword ptr [rip + core[8c5ac2f034688f9a]::panicking::panic_in_cleanup@GOTPCREL]

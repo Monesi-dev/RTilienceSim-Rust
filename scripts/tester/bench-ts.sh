@@ -6,6 +6,7 @@ set -e
 
 # Configuration
 FINISHING_TIME=100000000
+# FINISHING_TIME=1000000
 BINARY="./target/release/sp-taskset"
 TASKSET_DIR="./txt/simulation_scenario"
 
@@ -19,9 +20,9 @@ echo "N,U,id,time_seconds"
 
 # Loop over all combinations
 N_VALUES=(2 4 6 8 10 25 50 100)
-# N_VALUES=(2 10 100 200)
+# N_VALUES=(1000)
 U_VALUES=(0.3 0.5 0.7 0.9)
-# U_VALUES=(0.9)
+# U_VALUES=(0.5)
 
 for N in "${N_VALUES[@]}"; do
     for U in "${U_VALUES[@]}"; do

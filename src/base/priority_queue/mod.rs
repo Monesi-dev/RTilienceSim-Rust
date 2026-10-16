@@ -3,7 +3,11 @@
 mod priority_queue;
 mod priority_queue_trait;
 mod arena_queue;
+mod binary_heap_queue;
+mod vec_queue;
 
 pub use priority_queue::{BTreeQueue, Node, Event};
 pub use priority_queue_trait::{EventQueue, EventPriorities};
 pub use arena_queue::ArenaQueue;
+pub use binary_heap_queue::BinaryHeapQueue;
+pub use vec_queue::VecQueue;

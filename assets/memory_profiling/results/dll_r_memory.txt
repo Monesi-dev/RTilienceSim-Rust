@@ -1,0 +1,4 @@
+calls to allocation functions: 600037 (1428/s)
+temporary memory allocations: 2 (0/s)
+peak heap memory consumption: 46.98M
+peak RSS (including heaptrack overhead): 61.19M
