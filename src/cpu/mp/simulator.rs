@@ -8,26 +8,31 @@
 //!
 
 use crate::base::prelude::{SimTime, RandomVariable, Node, EventQueue};
+use crate::cpu::scheduler::Scheduler;
 use crate::util::get_next_id;
 use super::state::{EventType, TaskType, JobDescriptor, GlobalState, EventPriorityPolicy};
 use super::stats::Stats;
 use std::cmp::Reverse;
+use std::marker::PhantomData;
 
 /// Generic over Q: EventQueue<EventType, EventPriorityPolicy> for static dispatch to any
-/// queue implementation.
-pub struct CPUSimulatorMP<Q: EventQueue<EventType, EventPriorityPolicy>> {
+/// queue implementation, and over S: Scheduler for the policy that turns a task's
+/// priority and a job's deadline into the job's scheduling priority.
+pub struct CPUSimulatorMP<Q: EventQueue<EventType, EventPriorityPolicy>, S: Scheduler> {
     state: GlobalState,
     queue: Q,
     stats: Stats,
+    _scheduler: PhantomData<S>,
 }
 
-impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMP<Q> {
+impl<Q: EventQueue<EventType, EventPriorityPolicy>, S: Scheduler> CPUSimulatorMP<Q, S> {
 
     pub fn new(num_cpus: usize) -> Self {
         CPUSimulatorMP {
             state: GlobalState::new(num_cpus),
             queue: Q::new(),
             stats: Stats::new(num_cpus),
+            _scheduler: PhantomData,
         }
     }
 
@@ -41,7 +46,7 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMP<Q> {
         mut self,
         start_time: SimTime,
         relative_deadline: SimTime,
-        priority: u32,
+        priority: u64,
         execution_time_rng: Box<dyn RandomVariable>,
         interarrival_time_rng: Box<dyn RandomVariable>,
         store_response_times: bool,
@@ -106,9 +111,9 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMP<Q> {
     }
 
     /// Find the CPU with the lowest-priority job currently running
-    fn find_cpu_with_lowest_priority_job(&self) -> Option<(usize, u32)> {
+    fn find_cpu_with_lowest_priority_job(&self) -> Option<(usize, u64)> {
         let mut lowest_cpu = None;
-        let mut lowest_priority = u32::MIN;
+        let mut lowest_priority = u64::MIN;
 
         // Iterate over job on cpu, if there is a job then access job descr and if it 
         // has a lower priority than current lowest then set lowest to this job
@@ -174,7 +179,8 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMP<Q> {
 
             let execution_time = task_desc.execution_time_rng.sample();
             let deadline = time + task_desc.relative_deadline;
-            (task_desc.priority, execution_time, deadline)
+            let priority = S::schedule(task_desc.priority, deadline);
+            (priority, execution_time, deadline)
         };
 
         // Create JobDescriptor for the new job

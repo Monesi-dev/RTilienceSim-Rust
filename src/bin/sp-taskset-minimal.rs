@@ -210,7 +210,7 @@ fn main() {
         simulator = simulator.add_task_type(
             0,                                                  // start_time
             task.deadline,                                      // relative_deadline
-            (tasks.len() - idx) as u32,                         // priority (last task = 1 = highest)
+            (tasks.len() - idx) as u64,                         // priority (last task = 1 = highest)
             Box::new(Deterministic::new(task.execution_time)),  // execution_time
             Box::new(Deterministic::new(task.period)),          // period
             true,                                              // store_response_times

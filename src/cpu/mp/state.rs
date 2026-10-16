@@ -41,7 +41,7 @@ impl EventPriorities<EventType> for EventPriorityPolicy {
 #[derive(Debug)]
 pub struct TaskType {
     pub relative_deadline: SimTime,
-    pub priority: u32,
+    pub priority: u64,
     pub execution_time_rng: Box<dyn RandomVariable>,
     pub interarrival_time_rng: Box<dyn RandomVariable>,
 }
@@ -57,7 +57,7 @@ pub struct TaskType {
 pub struct JobDescriptor {
     pub scheduled_on_cpu: Option<(SimTime, usize)>,
     pub remaining_time: SimTime,
-    pub priority: u32,
+    pub priority: u64,
     pub deadline: SimTime,
 }
 
@@ -75,7 +75,7 @@ pub struct GlobalState {
     pub event_id_to_task_desc: HashMap<u64, TaskType>,
     pub event_id_to_job_descr: HashMap<u64, JobDescriptor>,
     pub jobs_on_cpu: Vec<Option<u64>>,  // One slot per CPU, holds job_id or None if idle
-    pub ready_queue: BinaryHeap<Reverse<(u32, u64)>>,
+    pub ready_queue: BinaryHeap<Reverse<(u64, u64)>>,
 }
 
 impl GlobalState {

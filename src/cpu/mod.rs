@@ -12,9 +12,11 @@ pub mod sp;
 pub mod mp;
 pub mod mq;
 pub mod mq_lb;
+pub mod scheduler;
 
 // Re-export simulators for convenience
 pub use sp::CPUSimulatorSP;
 pub use mp::CPUSimulatorMP;
 pub use mq::CPUSimulatorMQ;
 pub use mq_lb::CPUSimulatorMQLB;
+pub use scheduler::{Scheduler, StaticPriority, EDF};

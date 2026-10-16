@@ -10,21 +10,25 @@
 //! ordering is a property of the whole system timeline, not of any one CPU.
 
 use crate::base::prelude::{SimTime, RandomVariable, Node, EventQueue};
+use crate::cpu::scheduler::Scheduler;
 use crate::util::get_next_id;
 use super::state::{EventType, TaskType, JobDescriptor, GlobalState, EventPriorityPolicy};
 use super::stats::Stats;
 use std::cmp::Reverse;
+use std::marker::PhantomData;
 
 /// Generic over Q: EventQueue<EventType, EventPriorityPolicy> for static dispatch to any
-/// queue implementation.
-pub struct CPUSimulatorMQ<Q: EventQueue<EventType, EventPriorityPolicy>> {
+/// queue implementation, and over S: Scheduler for the policy that turns a task's
+/// priority and a job's deadline into the job's scheduling priority.
+pub struct CPUSimulatorMQ<Q: EventQueue<EventType, EventPriorityPolicy>, S: Scheduler> {
     num_cpus: usize,
     state: GlobalState,
     queue: Q,
     stats: Stats,
+    _scheduler: PhantomData<S>,
 }
 
-impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMQ<Q> {
+impl<Q: EventQueue<EventType, EventPriorityPolicy>, S: Scheduler> CPUSimulatorMQ<Q, S> {
 
     pub fn new(num_cpus: usize) -> Self {
         CPUSimulatorMQ {
@@ -32,6 +36,7 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMQ<Q> {
             state: GlobalState::new(num_cpus),
             queue: Q::new(),
             stats: Stats::new(num_cpus),
+            _scheduler: PhantomData,
         }
     }
 
@@ -48,7 +53,7 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMQ<Q> {
         mut self,
         start_time: SimTime,
         relative_deadline: SimTime,
-        priority: u32,
+        priority: u64,
         mut execution_time_rng: Box<dyn RandomVariable>,
         mut interarrival_time_rng: Box<dyn RandomVariable>,
         store_response_times: bool,
@@ -179,7 +184,8 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMQ<Q> {
             // Extract what we need from task_desc
             let execution_time = task_desc.execution_time_rng.sample();
             let deadline = time + task_desc.relative_deadline;
-            (task_desc.priority, execution_time, deadline, task_desc.cpu_affinity)
+            let priority = S::schedule(task_desc.priority, deadline);
+            (priority, execution_time, deadline, task_desc.cpu_affinity)
         }; // task_desc reference dropped here
 
         // Create JobDescriptor for the new job

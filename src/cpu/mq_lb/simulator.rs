@@ -7,19 +7,25 @@
 //! Migrations are tracked and counted for performance analysis.
 
 use crate::base::prelude::{SimTime, RandomVariable, Node, EventQueue};
+use crate::cpu::scheduler::Scheduler;
 use crate::util::get_next_id;
 use super::state::{EventType, TaskType, JobDescriptor, GlobalState, EventPriorityPolicy};
 use super::stats::Stats;
 use std::cmp::Reverse;
+use std::marker::PhantomData;
 
-pub struct CPUSimulatorMQLB<Q: EventQueue<EventType, EventPriorityPolicy>> {
+/// Generic over Q: EventQueue<EventType, EventPriorityPolicy> for static dispatch to any
+/// queue implementation, and over S: Scheduler for the policy that turns a task's
+/// priority and a job's deadline into the job's scheduling priority.
+pub struct CPUSimulatorMQLB<Q: EventQueue<EventType, EventPriorityPolicy>, S: Scheduler> {
     num_cpus: usize,
     state: GlobalState,
     queue: Q,
     stats: Stats,
+    _scheduler: PhantomData<S>,
 }
 
-impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMQLB<Q> {
+impl<Q: EventQueue<EventType, EventPriorityPolicy>, S: Scheduler> CPUSimulatorMQLB<Q, S> {
 
     pub fn new(num_cpus: usize) -> Self {
         CPUSimulatorMQLB {
@@ -27,6 +33,7 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMQLB<Q> {
             state: GlobalState::new(num_cpus),
             queue: Q::new(),
             stats: Stats::new(num_cpus),
+            _scheduler: PhantomData,
         }
     }
 
@@ -39,7 +46,7 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMQLB<Q> {
         mut self,
         start_time: SimTime,
         relative_deadline: SimTime,
-        priority: u32,
+        priority: u64,
         mut execution_time_rng: Box<dyn RandomVariable>,
         mut interarrival_time_rng: Box<dyn RandomVariable>,
         store_response_times: bool,
@@ -111,7 +118,7 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMQLB<Q> {
     /// Finds the CPU running the lowest-priority job. On a tie, favors `preferred_cpu`
     /// (the arriving task's affinity CPU) so a preemption doesn't cause a migration
     /// when it doesn't have to.
-    fn find_lowest_priority_running_job(&self, preferred_cpu: usize) -> Option<(usize, u32)> {
+    fn find_lowest_priority_running_job(&self, preferred_cpu: usize) -> Option<(usize, u64)> {
         let preferred_job_id = self.state.jobs_on_cpu[preferred_cpu].unwrap();
         let preferred_priority = self.state.event_id_to_job_descr.get(&preferred_job_id).unwrap().priority;
 
@@ -137,7 +144,7 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMQLB<Q> {
     // give precedence to cpu of completed job)
     fn find_highest_priority_waiting_job(&self, current_cpu: usize) -> Option<(u64, usize)> {
         let mut best_job = None;
-        let mut best_priority = u32::MAX;
+        let mut best_priority = u64::MAX;
         let mut best_cpu = current_cpu;
 
         // Check current CPU's ready queue first
@@ -208,7 +215,8 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorMQLB<Q> {
 
             let execution_time = task_desc.execution_time_rng.sample();
             let deadline = time + task_desc.relative_deadline;
-            (task_desc.priority, execution_time, deadline, task_desc.cpu_affinity)
+            let priority = S::schedule(task_desc.priority, deadline);
+            (priority, execution_time, deadline, task_desc.cpu_affinity)
         };
 
         // Create Job Descriptor with its event_id mapping

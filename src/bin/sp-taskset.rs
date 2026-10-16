@@ -15,6 +15,7 @@ use std::io::{BufRead, BufReader};
 use std::process;
 
 use rtilience_sim_rust::cpu::CPUSimulatorSP;
+use rtilience_sim_rust::cpu::{StaticPriority, EDF};
 use rtilience_sim_rust::cpu::sp::state::{EventType, EventPriorityPolicy};
 use rtilience_sim_rust::base::stats::Deterministic;
 use rtilience_sim_rust::base::prelude::{SimTime, BTreeQueue, ArenaQueue, BinaryHeapQueue, VecQueue};
@@ -200,7 +201,7 @@ fn main() {
     }
 
     // Build simulator with BTreeQueue (BTreeMap-based) EventQueue implementation
-    let mut simulator: CPUSimulatorSP<BTreeQueue<EventType, EventPriorityPolicy>> = CPUSimulatorSP::new().with_end_time(finishing_time);
+    let mut simulator: CPUSimulatorSP<BTreeQueue<EventType, EventPriorityPolicy>, EDF> = CPUSimulatorSP::new().with_end_time(finishing_time);
 
     // Add tasks with deterministic execution times
     // Priority is assigned so the LAST task in the file gets the highest priority
@@ -209,7 +210,7 @@ fn main() {
         simulator = simulator.add_task_type(
             0,                                                  // start_time
             task.deadline,                                      // relative_deadline
-            (tasks.len() - idx) as u32,                         // priority (last task = 1 = highest)
+            (tasks.len() - idx) as u64,                         // priority (last task = 1 = highest)
             Box::new(Deterministic::new(task.execution_time)),  // execution_time
             Box::new(Deterministic::new(task.period)),          // period
             true,                                              // store_response_times

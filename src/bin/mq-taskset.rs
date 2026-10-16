@@ -11,6 +11,7 @@ use std::io::{BufRead, BufReader};
 use std::process;
 
 use rtilience_sim_rust::cpu::CPUSimulatorMQ;
+use rtilience_sim_rust::cpu::StaticPriority;
 use rtilience_sim_rust::cpu::mq::state::{EventType, EventPriorityPolicy};
 use rtilience_sim_rust::base::stats::Deterministic;
 use rtilience_sim_rust::base::prelude::{SimTime, BTreeQueue};
@@ -67,7 +68,7 @@ fn main() {
     println!("Simulation Time: {}", SIMULATION_TIME);
     println!("Number of CPUs: {}", NUM_CPUS);
 
-    let mut simulator: CPUSimulatorMQ<BTreeQueue<EventType, EventPriorityPolicy>> =
+    let mut simulator: CPUSimulatorMQ<BTreeQueue<EventType, EventPriorityPolicy>, StaticPriority> =
         CPUSimulatorMQ::new(NUM_CPUS).with_end_time(SIMULATION_TIME);
 
     // Priority is assigned so the LAST task in the file gets the highest priority
@@ -76,7 +77,7 @@ fn main() {
         simulator = simulator.add_task_type(
             0,
             task.deadline,
-            (tasks.len() - idx) as u32,
+            (tasks.len() - idx) as u64,
             Box::new(Deterministic::new(task.execution_time)),
             Box::new(Deterministic::new(task.period)),
             true,

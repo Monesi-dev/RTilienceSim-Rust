@@ -72,7 +72,7 @@ impl<Q: EventQueue<EventType, EventPriorityPolicy>> CPUSimulatorSPMinimal<Q> {
         mut self,
         start_time: SimTime,
         relative_deadline: SimTime,
-        priority: u32,
+        priority: u64,
         execution_time_rng: Box<dyn RandomVariable>,
         interarrival_time_rng: Box<dyn RandomVariable>,
         store_response_times: bool,
