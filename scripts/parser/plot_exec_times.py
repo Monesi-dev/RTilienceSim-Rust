@@ -12,12 +12,12 @@ import numpy as np
 # --- Hardcoded inputs -------------------------------------------------------
 
 FILES = [
-    #("txt/exec_times/sp_btree.txt", "BTreeQueue"),
-    #("txt/exec_times/sp_arenadll.txt", "ArenaQueue"),
-    #("txt/exec_times/sp_binaryheap.txt", "BinaryHeapQueue"),
-    #("txt/exec_times/sp_vec.txt", "VecQueue"),
-    ("txt/exec_times/cpp_sp.txt", "C++"),
-    ("txt/exec_times/sp_arenadll.txt", "Rust"),
+    ("txt/exec_times/sp_btree.txt", "BTree"),
+    ("txt/exec_times/sp_arenadll.txt", "ArenaDLL"),
+    ("txt/exec_times/sp_binaryheap.txt", "BinaryHeap"),
+    ("txt/exec_times/sp_vec.txt", "Vec"),
+    #("txt/exec_times/cpp_sp.txt", "C++"),
+    #("txt/exec_times/sp_arenadll.txt", "Rust"),
 ]
 
 N_LIST = [2, 4, 6, 8, 10, 25, 50, 100]
@@ -95,12 +95,12 @@ for u in U_LIST:
         ax.set_title(f"Execution time vs N (U = {u}, N in [{n_range[0]}, {n_range[-1]}])")
         ax.set_xticks(x)
         ax.set_xticklabels(n_range)
-        ax.legend()
+        ax.legend(loc='upper left', fontsize=18, markerscale=2)
         ax.grid(axis="y", linestyle="--", alpha=0.3)
         fig.tight_layout()
 
-        # out_path = Path(f"plots/exec_times/sp_U_{u}_{suffix}.png")
-        out_path = Path(f"plots/exec_times/sp_cmp_U_{u}_{suffix}.png")
+        out_path = Path(f"plots/exec_times/sp_U_{u}_{suffix}.png")
+        #out_path = Path(f"plots/exec_times/sp_cmp_U_{u}_{suffix}.png")
         fig.savefig(out_path, dpi=150)
         plt.close(fig)
         print(f"Saved {out_path}")
